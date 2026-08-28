@@ -53,31 +53,6 @@ app.get('/', (req, res) =>{
 }) 
 
 
-const puppeteer = require('puppeteer')
-
-app.get('/test-puppeteer', async (req, res) => {
-  try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
-    await page.goto('https://www.sofascore.com/tennis', { waitUntil: 'networkidle2' });
-    
-    const response = await page.evaluate(async () => {
-      const res = await fetch('https://api.sofascore.com/api/v1/sport/tennis/events/live', {
-        headers: { 'Accept': 'application/json' }
-      });
-      return await res.text();
-    });
-    
-    await browser.close();
-    const data = JSON.parse(response);
-    res.json({ success: true, matchCount: data.events?.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 app.listen(port, () =>{
     console.log(`serveur démarré sur http://localhost:${port}`)
