@@ -53,6 +53,33 @@ app.get('/', (req, res) =>{
 }) 
 
 
+const puppeteer = require('puppeteer')
+
+app.get('/api/v1/tennis/live', async (req, res) => {
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.goto('https://www.sofascore.com/tennis', { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 3000));
+
+    const response = await page.evaluate(async () => {
+      const res = await fetch('https://api.sofascore.com/api/v1/sport/tennis/events/live', {
+        headers: { 'Accept': 'application/json' }
+      });
+      return await res.text();
+    });
+
+    await browser.close();
+    const data = JSON.parse(response);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(port, () =>{
     console.log(`serveur démarré sur http://localhost:${port}`)
