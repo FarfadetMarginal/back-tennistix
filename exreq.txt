@@ -1,0 +1,13 @@
+INSERT INTO users(firstname_user, lastname_user, mail_user, password_user, fk_id_role) VALUES("Archibald", "Gripsou", "archibaldgripsou@gmail.com", "#tgyè8HIgtiPgbè'f", 1);
+
+INSERT INTO bookings(date_booking, fk_id_user, fk_id_event) VALUES(CURDATE(), 6, 3);
+
+SELECT events.name_event FROM events INNER JOIN bookings ON bookings.fk_id_event = id_event INNER JOIN users ON bookings.fk_id_user = id_user WHERE users.firstname_user = 'Archibald' AND users.lastname_user = 'Gripsou'
+
+INSERT INTO events(name_event, descr_event, beginningdate_event, enddate_event, place_event, fk_id_user) VALUES("Rangement", "je vous invite à m'aider à ranger les dégâts causés lors de la fête de nettoyage de la veille", "2026-07-01 14:00:00", "2026-07-01 18:00:00", "chez Donald", 4);
+
+SELECT events.name_event, COUNT(*) AS number_enjoyer FROM bookings INNER JOIN events ON bookings.fk_id_event = id_event GROUP BY events.name_event
+
+UPDATE events SET descr_event="Vous avez bien mis le bazar avec 3 fêtes de suite, là c'est l'heure de ranger" WHERE id_event = 
+
+DELETE FROM bookings WHERE fk_id_user = 6 AND fk_id_event = 3
