@@ -82,6 +82,18 @@ app.get('/api/v1/tennis/live', async (req, res) => {
   }
 });
 
+
+app.get('/find-chrome', async (req, res) => {
+  const { execSync } = require('child_process');
+  try {
+    const result = execSync('find /opt/render/.cache/puppeteer -name "chrome" -type f').toString();
+    res.json({ paths: result });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
+
 app.listen(port, () =>{
     console.log(`serveur démarré sur http://localhost:${port}`)
 })
