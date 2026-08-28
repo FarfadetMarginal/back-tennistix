@@ -86,10 +86,10 @@ app.get('/api/v1/tennis/live', async (req, res) => {
 app.get('/find-chrome', async (req, res) => {
   const { execSync } = require('child_process');
   try {
-    const result = execSync('find /opt/render/.cache/puppeteer -name "chrome" -type f').toString();
+    const result = execSync('find /opt/render/project/src/.chrome -name "chrome" -type f').toString();
     res.json({ paths: result });
   } catch (err) {
-    res.json({ error: err.message });
+    res.json({ error: err.message, cwd: process.cwd() });
   }
 });
 
