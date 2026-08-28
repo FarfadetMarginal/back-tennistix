@@ -59,7 +59,7 @@ app.get('/api/v1/tennis/live', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
         headless: true,
-        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-152.0.7977.54/chrome-linux64/chrome',
+        executablePath: '/opt/render/project/src/.chrome/chrome/linux-152.0.7977.54/chrome-linux64/chrome',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
