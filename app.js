@@ -30,9 +30,10 @@ const initBrowser = async () => {
   sofascorePage = await browser.newPage();
   await sofascorePage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
   await sofascorePage.goto('https://www.sofascore.com/tennis', { 
-    waitUntil: 'domcontentloaded',
-    timeout: 60000 
-  });
+  waitUntil: 'networkidle2',  // attend que tout soit chargé
+  timeout: 60000 
+});
+await new Promise(r => setTimeout(r, 5000)); // attend 5s que les cookies se posent
   console.log('Browser et page Sofascore initialisés ✓');
 };
 
