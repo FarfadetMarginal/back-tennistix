@@ -112,9 +112,9 @@ exports.login = async (req, res) =>{
 
 //reset password
 exports.forgotPassword = async (req, res) => {
-    const query = 'SELECT * FROM "Users" WHERE email = $1' 
-    const query2 = 'UPDATE "Users" SET reset_token = $2 WHERE email = $1'
     try {
+        const query = 'SELECT * FROM "Users" WHERE email = $1' 
+        const query2 = 'UPDATE "Users" SET reset_token = $2 WHERE email = $1'
         const { email } = req.body
         if(!email){
             res.status(400).json({message : 'empty field'})

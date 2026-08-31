@@ -20,7 +20,7 @@ startServer()
 
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
-
+const matchRoutes = require('./routes/matchRoutes')
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
@@ -46,6 +46,7 @@ app.use(limiter)
 
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/user', userRoutes)
+app.use('/api/v1/match', matchRoutes)
 
 // l'URL ↓
 app.get('/', (req, res) =>{

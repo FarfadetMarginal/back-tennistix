@@ -49,7 +49,10 @@ const pollLive = async () => {
         const data = await fetchFromAPI('/matches?status=live');
         liveCache = data;
 
-        if (data.data) await saveFinishedMatches(data.data);
+        if (data.data){
+            await saveFinishedMatches(data.data);
+        }
+            
 
         // Plus aucun match en live → retour en veille
         if (!data.data?.length) {
