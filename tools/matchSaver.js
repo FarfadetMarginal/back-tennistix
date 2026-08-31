@@ -105,14 +105,14 @@ const scheduleLiveMode = (fixtures) => {
 // Récupère les fixtures du jour
 const pollFixtures = async () => {
     try {
-        const data = await fetchFromAPI('/fixtures');
-        scheduledCache = data;
+        const response = await fetchFromAPI('/fixtures');
+        scheduledCache = response.data || [];
 
-        if (data.data?.length) {
-            scheduleLiveMode(data.data);
+        if (scheduledCache.length > 0) {
+            scheduleLiveMode(scheduledCache);
         }
 
-        console.log('Fixtures mises à jour ✓');
+        console.log('Fixtures updated');
     } catch (err) {
         console.error('Erreur poll fixtures :', err.message);
     }

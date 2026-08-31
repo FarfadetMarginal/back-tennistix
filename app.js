@@ -10,9 +10,11 @@ const rateLimit = require('express-rate-limit')
 
 
 const { pool, connectDB } = require('./config/db.js');
+const { startPolling } = require('./tools/matchSaver');
+
 const startServer = async () =>{
     await connectDB()
-
+    startPolling();
     console.log("jusqu'ici tout va bien") 
 
 }
