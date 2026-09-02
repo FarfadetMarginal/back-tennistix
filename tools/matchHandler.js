@@ -23,7 +23,10 @@ const poll = async () => {
     const live = await fetchFromAPI('/matches?status=live&draw=singles');
     const upcoming = await fetchFromAPI('/fixtures?draw=singles');
     const finished = await fetchFromAPI('/history/matches?draw=singles');
+
     console.log('finished raw:', JSON.stringify(finished).slice(0, 300));
+    console.log('finished[0] tour:', finished.data?.[0]?.tour);
+    console.log('finished[0] tournament:', finished.data?.[0]?.tournament);
 
     // On filtre ATP et WTA côté serveur
     liveCache = {
