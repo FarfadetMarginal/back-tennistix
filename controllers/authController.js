@@ -21,10 +21,9 @@ const generateToken2 = (id) =>{
 
 //créer un compte
 exports.register = async(req, res)=>{
-    const query = 'INSERT INTO "Users"(pseudo, email, password, role) VALUES($1, $2, $3, $4) RETURNING *'
     try {
         const {pseudo, email, password, role} = req.body
-
+        
         //on check si champs non vide
         if(!pseudo ||!email || !password){
             return res.status(400).json({message : 'empty field'})
@@ -47,8 +46,10 @@ exports.register = async(req, res)=>{
         if(!isEmailOk){
             return res.status(400).json({message: "email not valid"})
         }
-
+        
         const hashedPassword = await bcrypt.hash(password, 10)
+        
+        const query = 'INSERT INTO "Users"(pseudo, email, password, role) VALUES($1, $2, $3, $4) RETURNING *'
 
         const result = await pool.query(query, [pseudo, email, hashedPassword, role || 'user'])
 
@@ -72,14 +73,15 @@ exports.register = async(req, res)=>{
 
 
 exports.login = async (req, res) =>{
-    const query = 'SELECT * FROM "Users" WHERE email = $1' 
     try {
         const {email, password} = req.body
         if(!email || !password){
             res.status(400).json({message : 'empty field'})
         }
-
+        
         //find user and select password field
+        const query = 'SELECT * FROM "Users" WHERE email = $1' 
+        
         const result = await pool.query(query, [email])
         
         const user = result.rows[0]

@@ -1,4 +1,4 @@
-const { pool } = require('../config/db.js') 
+
 const { getLiveCache, getScheduledCache, getFinishedATPCache, getFinishedWTACache } = require('../tools/matchHandler.js');
 
 
