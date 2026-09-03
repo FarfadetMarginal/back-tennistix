@@ -1,10 +1,10 @@
 const express = require('express')
-const { getLive, getIncoming, getFinished } = require('../controllers/matchController')
+const { getLive, getIncoming, getFinishedATP, getFinishedWTA } = require('../controllers/matchController')
 const router = express.Router()
-
 
 router.get('/live', getLive)
 router.get('/incoming', getIncoming)
-router.get('/finished', getFinished)
+router.get('/finishedatp', getFinishedATP)
+router.get('/finishedwta', getFinishedWTA)
 
 module.exports = router 

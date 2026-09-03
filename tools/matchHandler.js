@@ -2,7 +2,8 @@ const { pool } = require('../config/db');
 
 let liveCache = null;
 let scheduledCache = null;
-let finishedCache = null;
+let finishedATPCache = null;
+let finishedWTACache = null
 
 const API_KEY = process.env.APIKEY;
 const BASE_URL = 'https://api.livetennisapi.com/api/public/v1';
@@ -21,42 +22,55 @@ const response = await fetch(`${BASE_URL}${endpoint}`, {
 const poll = async () => {
     try {
     const live = await fetchFromAPI('/matches?status=live&draw=singles');
-    const upcoming = await fetchFromAPI('/fixtures?draw=singles');
-    const finished = await fetchFromAPI('/history/matches?draw=singles');
-
-    console.log('finished raw:', JSON.stringify(finished).slice(0, 300));
-    console.log('finished[0] tour:', finished.data?.[0]?.tour);
-    console.log('finished[0] tournament:', finished.data?.[0]?.tournament);
+    const finishedatp = await fetchFromAPI('/history/matches?draw=singles&tour=atp');
+    const finishedwta = await fetchFromAPI('/history/matches?draw=singles&tour=wta');
 
     // On filtre ATP et WTA côté serveur
     liveCache = {
         data: live.data?.filter(m => m.tour === 'atp' || m.tour === 'wta') || []
     };
 
-    scheduledCache = {
-        data: upcoming.data?.filter(m => m.tour === 'atp' || m.tour === 'wta') || []
-    };
+    finishedATPCache = {
+        data: finishedatp.data
+    }
 
-    finishedCache = {
-        data: finished.data?.filter(m => m.tour === 'atp' || m.tour === 'wta') || []
-    };
-
+    finishedWTACache = {
+        data: finishedwta.data
+    }
+ 
     console.log(`Cache mis à jour — ${liveCache.data.length} matchs en direct`);
-
 
     } catch (err) {
         console.error('Erreur poll :', err.message);
     }
 };
 
+const poll2 = async () => {
+    try {
+
+    const upcoming = await fetchFromAPI('/fixtures?draw=singles');
+
+    scheduledCache = {
+        data: upcoming.data?.filter(m => m.tour === 'atp' || m.tour === 'wta') || []
+    };
+
+    console.log(`scheduled matchs ok`);
+
+    } catch (err) {
+        console.error('Erreur poll :', err.message);
+    }
+};
 
 const startPolling = () => {
 poll();
-    setInterval(poll, 300000); //can be changed ! 
+setInterval(poll, 261000); // 261 000 secondes = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
+poll2();
+setInterval(poll2, 21600000); //=6h, donc 4 polls/jour
 };
 
 const getLiveCache = () => liveCache;
 const getScheduledCache = () => scheduledCache;
-const getFinishedCache = () => finishedCache;
+const getFinishedATPCache = () => finishedATPCache;
+const getFinishedWTACache = () => finishedWTACache;
 
-module.exports = { startPolling, getLiveCache, getScheduledCache, fetchFromAPI, getFinishedCache };
+module.exports = { startPolling, getLiveCache, getScheduledCache, fetchFromAPI, getFinishedATPCache, getFinishedWTACache };
