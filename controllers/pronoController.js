@@ -2,7 +2,7 @@ const { pool } = require('../config/db')
 const { getScheduledCache } = require('../tools/matchHandler.js');
 
 
-exports.tryProno = async (req, res) =>{
+exports.newProno = async (req, res) =>{
     try {
         const data = getScheduledCache();
         const { match_id, prono } = req.body
@@ -30,3 +30,14 @@ exports.tryProno = async (req, res) =>{
         res.status(500).json({message : 'server error during incoming matches display', error: err.message})
     }
 }
+
+exports.endProno = async (req, res) =>{
+    try {
+        
+
+        res.status(201).json(result)
+    } catch (err) {
+        res.status(500).json({message : 'server error during incoming matches display', error: err.message})
+    }
+}
+

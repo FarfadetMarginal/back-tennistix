@@ -1,3 +1,5 @@
+const { pool } = require('../config/db') 
+
 let liveCache = null;
 let scheduledCache = null;
 let finishedATPCache = null;
@@ -16,6 +18,19 @@ const response = await fetch(`${BASE_URL}${endpoint}`, {
     return await response.json();
 };
 
+const pronoUpdater = async () =>{
+    const result = await pool.query('SELECT * FROM "Matchs" m INNER JOIN "Pronostics" p ON p.match_id = m.id_api WHERE p.result IS NULL')
+
+    const allFinished = [
+        ...(finishedATPCache?.data || []),
+        ...(finishedWTACache?.data || [])
+    ];
+    
+    result.forEach(element => {
+        const finishedMatch = allFinished.find(m => m.id === element.id_api);
+        
+    });
+}
 
 const poll = async () => {
     try {
