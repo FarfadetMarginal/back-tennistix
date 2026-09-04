@@ -1,9 +1,7 @@
-const { pool } = require('../config/db');
-
 let liveCache = null;
 let scheduledCache = null;
 let finishedATPCache = null;
-let finishedWTACache = null
+let finishedWTACache = null;
 
 const API_KEY = process.env.APIKEY;
 const BASE_URL = 'https://api.livetennisapi.com/api/public/v1';
@@ -48,10 +46,10 @@ const poll = async () => {
 const poll2 = async () => {
     try {
 
-    const upcoming = await fetchFromAPI('/fixtures?draw=singles');
+    const upcoming = await fetchFromAPI('/fixtures?draw=singles&limit=200');
 
     scheduledCache = {
-        data: upcoming.data?.filter(m => m.tour === 'atp' || m.tour === 'wta') || []
+        data: upcoming.data?.filter(m => (m.tour === 'atp' || m.tour === 'wta') && m.status !== 'finished' && m.status !== 'live' ) || []
     };
 
     console.log(`scheduled matchs ok`);
@@ -62,10 +60,10 @@ const poll2 = async () => {
 };
 
 const startPolling = () => {
-poll();
-setInterval(poll, 261000); // 261 000 secondes = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
-poll2();
-setInterval(poll2, 21600000); //=6h, donc 4 polls/jour
+    poll();
+    setInterval(poll, 261000); // 261 000 secondes = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
+    poll2();
+    setInterval(poll2, 21600000); //=6h, donc 4 polls/jour
 };
 
 const getLiveCache = () => liveCache;
