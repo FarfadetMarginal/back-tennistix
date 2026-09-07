@@ -19,18 +19,28 @@ const response = await fetch(`${BASE_URL}${endpoint}`, {
 };
 
 const pronoUpdater = async () =>{
-    const result = await pool.query('SELECT * FROM "Matchs" m INNER JOIN "Pronostics" p ON p.match_id = m.id_api WHERE p.result IS NULL')
+        const result = await pool.query('SELECT * FROM "Matchs" m INNER JOIN "Pronostics" p ON p.match_id = m.id_api WHERE p.result IS NULL')
 
-    const allFinished = [
-        ...(finishedATPCache?.data || []),
-        ...(finishedWTACache?.data || [])
-    ];
-    
-    result.forEach(element => {
-        const finishedMatch = allFinished.find(m => m.id === element.id_api);
+        const allFinished = [
+            ...(finishedATPCache?.data || []),
+            ...(finishedWTACache?.data || [])
+        ];
         
-    });
-}
+        for(const item of result.rows) {
+            const finishedMatch = allFinished.find(m => m.id === item.id_api);
+            if(finishedMatch){
+                if(finishedMatch.winner == 1){
+                    await pool.query(`UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2`, [1, finishedMatch.id]);
+                }
+                
+                if(finishedMatch.winner == 2){
+                    await pool.query(`UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2`, [2, finishedMatch.id]);
+                }
+                
+                await pool.query(`UPDATE "Pronostics" SET result = CASE WHEN prono = $1 THEN true ELSE false END WHERE match_id = $2 AND result IS NULL`, [finishedMatch.winner, finishedMatch.id]);
+            }
+        };
+    }
 
 const poll = async () => {
     try {
@@ -50,6 +60,8 @@ const poll = async () => {
     finishedWTACache = {
         data: finishedwta.data
     }
+
+    await pronoUpdater();
  
     console.log(`Cache mis à jour — ${liveCache.data.length} matchs en direct`);
 
