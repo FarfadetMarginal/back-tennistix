@@ -4,12 +4,13 @@ const { pool } = require('../config/db.js')
 
 //modifier infos
 exports.updateUser = async (req, res) => {
-    const query = 'SELECT * FROM "Users" WHERE id = $1' 
-    const query2 = 'UPDATE "Users" SET pseudo = $1, email = $2, password = $3, pp= $4 WHERE id = $5 RETURNING *'
     try {
         if(!req.user.id){
             return res.status(401).json({message : 'not connected'})
         }
+        
+        const query = 'SELECT * FROM "Users" WHERE id = $1' 
+        const query2 = 'UPDATE "Users" SET pseudo = $1, email = $2, password = $3, pp= $4 WHERE id = $5 RETURNING *'
 
         const result = await pool.query(query, [req.user.id])
         
@@ -62,4 +63,79 @@ exports.updateUser = async (req, res) => {
     }
 }
 
+
+exports.addFriend = async (req, res) => {
+    try {
+        if(!req.user.id){
+            return res.status(401).json({message : 'not connected'})
+        }
+        
+        const query = 'SELECT * FROM "Users" WHERE id = $1' 
+        const query2 = 'UPDATE "Users" SET friends = $1 WHERE id = $2 RETURNING *'
+
+        const { user_id } = req.body
+
+        const result = await pool.query(query, [req.user.id])
+        
+        const changedUser = result.rows[0]
+
+        const currentfriends = changedUser.friends || []
+        
+        let newfriends = currentfriends.map(id => parseInt(id, 10));
+
+         if(newfriends.includes(user_id)){
+            newfriends = newfriends.filter(
+                id => id !== user_id
+            )
+        } else {
+            newfriends.push(user_id)
+        }
+
+        const result2 = await pool.query(query2, [newfriends, req.user.id])
+        
+        const newUser = result2.rows[0]
+
+        return res.status(200).json({
+            message : 'friends updated successfully',
+            user: {
+                pseudo: newUser.pseudo,
+                favs: newUser.friends,
+            }
+        })
+    } catch (error) {
+        return res.status(400).json({message : error.message})
+    }
+}
+
+
+exports.getFriends = async (req, res) => {
+    try {
+        if(!req.user.id){
+            return res.status(401).json({message : 'not connected'})
+        }
+        
+        const query = 'SELECT pseudo, friends FROM "Users" WHERE id = $1' 
+        const query2 = 'SELECT pseudo, friends FROM "Users" WHERE id = ANY($1)' 
+        const query3 = 'SELECT pseudo FROM "Users" WHERE id = $1' 
+
+        const result = await pool.query(query, [req.user.id])
+        
+        const changedUser = result.rows[0]
+
+        const currentfriends = changedUser.friends || []
+
+        const result2 = await pool.query(query2, [currentfriends])
+        
+        const realfriends = []
+
+        for(const item of result2.rows) {
+            const result3 = await pool.query(query3, [req.user.id])
+            realfriends.push(result3.rows[0])
+        }
+
+        return res.status(200).json({ message : 'friends updated successfully', realfriends })
+    } catch (error) {
+        return res.status(400).json({message : error.message})
+    }
+}
 

@@ -45,7 +45,7 @@ exports.favPlayer = async (req, res) => {
         const newUser = result2.rows[0]
 
         return res.status(200).json({
-            message : 'User registered successfully',
+            message : 'fav updated successfully',
             user: {
                 pseudo: newUser.pseudo,
                 favs: newUser.favs,
