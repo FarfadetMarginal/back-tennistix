@@ -4,6 +4,7 @@ let liveCache = null;
 let scheduledCache = null;
 let finishedATPCache = null;
 let finishedWTACache = null;
+let playersCache = null;
 
 const API_KEY = process.env.APIKEY;
 const BASE_URL = 'https://api.livetennisapi.com/api/public/v1';
@@ -27,7 +28,7 @@ const pronoUpdater = async () =>{
         ];
         
         for(const item of result.rows) {
-            const finishedMatch = allFinished.find(m => m.id === item.id_api);
+            const finishedMatch = allFinished.find(m => m.id == item.id_api);
             if(finishedMatch){
                 if(finishedMatch.winner == 1){
                     await pool.query(`UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2`, [1, finishedMatch.id]);
@@ -38,7 +39,9 @@ const pronoUpdater = async () =>{
                 }
                 
                 await pool.query(`UPDATE "Pronostics" SET result = CASE WHEN prono = $1 THEN true ELSE false END WHERE match_id = $2 AND result IS NULL`, [finishedMatch.winner, finishedMatch.id]);
-            }
+
+                await pool.query(`UPDATE "Users" SET score = score + 1 WHERE id IN (SELECT user_id FROM "Pronostics" WHERE match_id = $1 AND prono = $2 AND result = true)`, [finishedMatch.id, finishedMatch.winner]);
+            }   
         };
     }
 
@@ -63,12 +66,20 @@ const poll = async () => {
 
     await pronoUpdater();
  
-    console.log(`Cache mis à jour — ${liveCache.data.length} matchs en direct`);
+    console.log(`Cache updated — ${liveCache.data.length} matchs live`);
 
     } catch (err) {
-        console.error('Erreur poll :', err.message);
+        console.error('Error during poll :', err.message);
     }
 };
+
+const pollplayer = async () =>{
+    const players = await fetchFromAPI('/players?limit=200');
+    playersCache = {
+        data : players.data || []
+    }
+}
+
 
 const poll2 = async () => {
     try {
@@ -79,23 +90,24 @@ const poll2 = async () => {
         data: upcoming.data?.filter(m => (m.tour === 'atp' || m.tour === 'wta') && m.status !== 'finished' && m.status !== 'live' ) || []
     };
 
-    console.log(`scheduled matchs ok`);
-
     } catch (err) {
-        console.error('Erreur poll :', err.message);
+        console.error('Error during poll :', err.message);
     }
 };
 
 const startPolling = () => {
     poll();
-    setInterval(poll, 261000); // 261 000 secondes = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
+    setInterval(poll, 261000); // 261 000 ms = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
     poll2();
     setInterval(poll2, 21600000); //=6h, donc 4 polls/jour
+    pollplayer();
+    setInterval(pollplayer, 86400000); //=24h, donc 1 polls/jour
 };
 
 const getLiveCache = () => liveCache;
 const getScheduledCache = () => scheduledCache;
 const getFinishedATPCache = () => finishedATPCache;
 const getFinishedWTACache = () => finishedWTACache;
+const getPlayersCache = () => playersCache;
 
-module.exports = { startPolling, getLiveCache, getScheduledCache, fetchFromAPI, getFinishedATPCache, getFinishedWTACache };
+module.exports = { startPolling, getLiveCache, getScheduledCache, fetchFromAPI, getFinishedATPCache, getFinishedWTACache, getPlayersCache };

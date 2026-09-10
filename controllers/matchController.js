@@ -1,5 +1,5 @@
 
-const { getLiveCache, getScheduledCache, getFinishedATPCache, getFinishedWTACache } = require('../tools/matchHandler.js');
+const { getLiveCache, getScheduledCache, getFinishedATPCache, getFinishedWTACache, getPlayersCache } = require('../tools/matchHandler.js');
 
 
 exports.getLive = (req, res) => {
@@ -32,6 +32,17 @@ exports.getFinishedATP = async (req, res) => {
 exports.getFinishedWTA = async (req, res) => {
     try {
         const data = getFinishedWTACache()
+        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches planned right now' });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+exports.getPlayers = async (req, res) => {
+    try {
+        const data = getPlayersCache()
         if (!data || data.length === 0) return res.status(503).json({ message: 'no matches planned right now' });
         res.json(data);
     } catch (err) {

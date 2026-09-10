@@ -27,6 +27,6 @@ exports.newProno = async (req, res) =>{
 
         res.status(201).json(result2)
     } catch (err) {
-        res.status(500).json({message : 'server error during incoming matches display', error: err.message})
+        res.status(500).json({message : 'server error during prono', error: err.message})
     }
 }
