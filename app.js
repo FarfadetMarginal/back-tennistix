@@ -24,6 +24,7 @@ const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
 const matchRoutes = require('./routes/matchRoutes')
 const pronoRoutes = require('./routes/pronoRoutes')
+const playerRoutes = require('./routes/playerRoutes')
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
@@ -51,6 +52,8 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/user', userRoutes)
 app.use('/api/v1/match', matchRoutes)
 app.use('/api/v1/prono', pronoRoutes)
+app.use('/api/v1/player', playerRoutes)
+
 
 // l'URL ↓
 app.get('/', (req, res) =>{

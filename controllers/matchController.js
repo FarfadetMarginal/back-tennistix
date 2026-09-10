@@ -21,7 +21,7 @@ exports.getIncoming = async (req, res) =>{
 exports.getFinishedATP = async (req, res) => {
     try {
         const data = getFinishedATPCache()
-        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches planned right now' });
+        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches found' });
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -32,20 +32,10 @@ exports.getFinishedATP = async (req, res) => {
 exports.getFinishedWTA = async (req, res) => {
     try {
         const data = getFinishedWTACache()
-        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches planned right now' });
+        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches found' });
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-
-exports.getPlayers = async (req, res) => {
-    try {
-        const data = getPlayersCache()
-        if (!data || data.length === 0) return res.status(503).json({ message: 'no matches planned right now' });
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
