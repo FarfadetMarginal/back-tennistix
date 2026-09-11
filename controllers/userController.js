@@ -51,7 +51,7 @@ exports.updateUser = async (req, res) => {
         const newUser = result2.rows[0]
 
         return res.status(200).json({
-            message : 'User registered successfully',
+            message : 'User updated successfully',
             user: {
                 id: newUser.id,
                 email: newUser.email,
@@ -64,78 +64,111 @@ exports.updateUser = async (req, res) => {
 }
 
 
-exports.addFriend = async (req, res) => {
-    try {
-        if(!req.user.id){
-            return res.status(401).json({message : 'not connected'})
-        }
+// exports.addFriend = async (req, res) => {
+//     try {
+//         if(!req.user.id){
+//             return res.status(401).json({message : 'not connected'})
+//         }
         
-        const query = 'SELECT * FROM "Users" WHERE id = $1' 
-        const query2 = 'UPDATE "Users" SET friends = $1 WHERE id = $2 RETURNING *'
+//         const query = 'SELECT * FROM "Users" WHERE id = $1' 
+//         const query2 = 'UPDATE "Users" SET friends = $1 WHERE id = $2 RETURNING *'
 
-        const { user_id } = req.body
+//         const { user_id } = req.body
 
-        const result = await pool.query(query, [req.user.id])
+//         const result = await pool.query(query, [user_id])
         
-        const changedUser = result.rows[0]
+//         const changedUser = result.rows[0]
 
-        const currentfriends = changedUser.friends || []
+//         const currentfriends = changedUser.friends || []
         
-        let newfriends = currentfriends.map(id => parseInt(id, 10));
+//         let newfriends = currentfriends.map(id => parseInt(id, 10));
 
-         if(newfriends.includes(user_id)){
-            newfriends = newfriends.filter(
-                id => id !== user_id
-            )
-        } else {
-            newfriends.push(user_id)
-        }
+//          if(newfriends.includes(req.user.id)){
+//             newfriends = newfriends.filter(
+//                 id => id !== req.user.id
+//             )
+//         } else {
+//             newfriends.push(req.user.id)
+//         }
 
-        const result2 = await pool.query(query2, [newfriends, req.user.id])
+//         const result2 = await pool.query(query2, [newfriends, user_id])
         
-        const newUser = result2.rows[0]
+//         const newUser = result2.rows[0]
 
-        return res.status(200).json({
-            message : 'friends updated successfully',
-            user: {
-                pseudo: newUser.pseudo,
-                favs: newUser.friends,
-            }
-        })
-    } catch (error) {
-        return res.status(400).json({message : error.message})
-    }
-}
+//         return res.status(200).json({
+//             message : 'friends request sent / cancelled successfully',
+//             user: {
+//                 pseudo: newUser.pseudo,
+//                 friends: newUser.friends,
+//             }
+//         })
+//     } catch (error) {
+//         return res.status(400).json({message : error.message})
+//     }
+// }
 
 
-exports.getFriends = async (req, res) => {
-    try {
-        if(!req.user.id){
-            return res.status(401).json({message : 'not connected'})
-        }
+// exports.getFriends = async (req, res) => {
+//     try {
+//         if(!req.user.id){
+//             return res.status(401).json({message : 'not connected'})
+//         }
         
-        const query = 'SELECT pseudo, friends FROM "Users" WHERE id = $1' 
-        const query2 = 'SELECT pseudo, friends FROM "Users" WHERE id = ANY($1)' 
-        const query3 = 'SELECT pseudo FROM "Users" WHERE id = $1' 
+//         const query = 'SELECT pseudo, friends FROM "Users" WHERE id = $1' 
+//         const query2 = 'SELECT pseudo, friends FROM "Users" WHERE id = ANY($1)' 
+//         const query3 = 'SELECT pseudo FROM "Users" WHERE friends = $1' 
 
-        const result = await pool.query(query, [req.user.id])
+//         const result = await pool.query(query, [req.user.id])
         
-        const changedUser = result.rows[0]
+//         const changedUser = result.rows[0]
 
-        const currentfriends = changedUser.friends || []
+//         const currentfriends = changedUser.friends || []
 
-        const result2 = await pool.query(query2, [currentfriends])
+//         const result2 = await pool.query(query2, [currentfriends])
         
-        const realfriends = []
+//         const realfriends = []
 
-        for(const item of result2.rows) {
-            const result3 = await pool.query(query3, [req.user.id])
-            realfriends.push(result3.rows[0])
-        }
+//         for(const item of result2.rows) {
+//             const result3 = await pool.query(query3, [req.user.id])
+//             realfriends.push(result3.rows[0])
+//         }
 
-        return res.status(200).json({ message : 'friends updated successfully', realfriends })
-    } catch (error) {
-        return res.status(400).json({message : error.message})
-    }
-}
+//         return res.status(200).json({ message : 'friends updated successfully', realfriends })
+//     } catch (error) {
+//         return res.status(400).json({message : error.message})
+//     }
+// }
+
+
+// exports.getFriendRequest = async (req, res) => {
+//     try {
+//         if(!req.user.id){
+//             return res.status(401).json({message : 'not connected'})
+//         }
+        
+//         const query = 'SELECT pseudo, friends FROM "Users" WHERE id = $1' 
+//         const query2 = 'SELECT pseudo, friends FROM "Users" WHERE id = ANY($1)' 
+//         const query3 = 'SELECT pseudo FROM "Users" WHERE NOT friends = $1' 
+
+//         const result = await pool.query(query, [req.user.id])
+        
+//         const changedUser = result.rows[0]
+
+//         const currentfriends = changedUser.friends || []
+
+//         const result2 = await pool.query(query2, [currentfriends])
+        
+//         const notfriends = []
+
+//         for(const item of result2.rows) {
+//             const result3 = await pool.query(query3, [req.user.id])
+//             notfriends.push(result3.rows[0])
+//         }
+
+//         return res.status(200).json({ message : 'friends updated successfully', notfriends })
+//     } catch (error) {
+//         return res.status(400).json({message : error.message})
+//     }
+// }
+
 
