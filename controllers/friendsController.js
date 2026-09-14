@@ -25,7 +25,6 @@ exports.sendRequest = async (req, res) => {
             return res.status(200).json({request : existingRequest})
         }
 
-
         const result2 = await pool.query(query2, [senderId, receiverId])
 
         return res.status(200).json({
@@ -44,8 +43,19 @@ exports.acceptRequest = async (req, res) => {
             return res.status(401).json({message : 'not connected'})
         }
         
-        const senderId = req.user.id;
-        const receiverId = parseInt(req.params.id, 10);
+        const senderId = parseInt(req.params.id, 10);
+        const receiverId = req.user.id;
+
+        const query2 =  `SELECT * FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'` 
+
+        const result2 = await pool.query(query2, [senderId, receiverId])
+        if(!result2.rows[0]){
+            return res.status(404).json({message : 'friend request not found'})
+        }
+        if(result2.rows[0].status == 'accepted'){
+            return res.status(404).json({message : 'friend request already accepted'})
+        }
+
 
         const query = `UPDATE "Friends" SET status = $1 WHERE sender_id = $2 AND receiver_id = $3 AND status = 'pending' RETURNING *`
 
@@ -66,8 +76,18 @@ exports.declineRequest = async (req, res) => {
             return res.status(401).json({message : 'not connected'})
         }
         
-        const senderId = req.user.id;
-        const receiverId = parseInt(req.params.id, 10);
+        const senderId = parseInt(req.params.id, 10);
+        const receiverId = req.user.id;
+
+        const query2 =  `SELECT * FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'` 
+
+        const result2 = await pool.query(query2, [senderId, receiverId])
+        if(!result2.rows[0]){
+            return res.status(404).json({message : 'friend request not found'})
+        }
+        if(result2.rows[0].status == 'accepted'){
+            return res.status(404).json({message : 'friend request already accepted'})
+        }
 
 
         const query = `DELETE FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending' RETURNING *`
