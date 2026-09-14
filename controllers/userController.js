@@ -70,16 +70,55 @@ exports.getUsers = async (req, res) => {
             return res.status(401).json({message : 'not connected'})
         }
         
+        const querySearch = req.query.q || '';
+
+        if (!querySearch.trim()) {
+            return res.status(200).json({ users: [] });
+        }
 
         const query = `SELECT pseudo, id FROM "Users" WHERE pseudo ILIKE $1 AND id != $2 LIMIT 20`
 
-        const result = await pool.query(query, [ , req.user.id])
+        const result = await pool.query(query, [querySearch , req.user.id])
 
         return res.status(200).json({
-            message : 'friend list displayed successfully', 
-            friendlist : result.rows})
+            message : 'research succesful', 
+            users: result.rows})
             
     } catch (error) {
         return res.status(400).json({message : error.message})
     }
 };
+
+
+exports.getGlobalLeaderboard = async (req, res) => {
+    try {
+        if(!req.user.id){
+            return res.status(401).json({message : 'not connected'})
+        }
+
+        const query = `SELECT u.pseudo, u.score, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / COUNT(p.id), 1) as winrate FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id WHERE p.result IS NOT NULL GROUP BY u.id, u.pseudo ORDER BY winrate DESC`
+
+        const result = await pool.query(query, [querySearch , req.user.id])
+
+        return res.status(200).json({
+            message : 'research succesful', 
+            users: result.rows})
+            
+    } catch (error) {
+        return res.status(400).json({message : error.message})
+    }
+};
+
+//lb global, par score ou wr = changer order by
+const t1 = `SELECT u.pseudo, u.score, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / COUNT(p.id), 1) as winrate FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id WHERE p.result IS NOT NULL GROUP BY u.id, u.pseudo ORDER BY winrate DESC`
+
+//lb global par tournoi
+const t2 = `SELECT u.pseudo, u.score, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / COUNT(p.id), 1) as winrate FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id WHERE p.result IS NOT NULL GROUP BY u.id, u.pseudo, m.tournament_name`
+
+//lb ami
+const t3 = `SELECT u.pseudo, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate, u.score
+FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id
+WHERE p.result IS NOT NULL AND u.id IN (SELECT $1 UNION SELECT CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END
+FROM "Friends" f WHERE (f.sender_id = $1 OR f.receiver_id = $1) AND f.status = 'accepted')
+GROUP BY u.id, u.pseudo, u.score
+ORDER BY winrate DESC`
