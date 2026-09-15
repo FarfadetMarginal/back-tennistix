@@ -124,7 +124,7 @@ exports.forgotPassword = async (req, res) => {
         const query2 = 'UPDATE "Users" SET reset_token = $2 WHERE email = $1'
         const { email } = req.body
         if(!email){
-            res.status(400).json({message : 'empty field'})
+            return res.status(400).json({message : 'empty field'})
         }
         const result = await pool.query(query, [email])
         
@@ -136,7 +136,7 @@ exports.forgotPassword = async (req, res) => {
 
         const token2 = generateToken2(changedUser.id)
 
-        const send = await mailSender(email, changedUser.pseudo, token2);
+        await mailSender(email, changedUser.pseudo, token2);
 
         const result2 = await pool.query(query2, [email, token2])
 

@@ -97,7 +97,7 @@ const poll2 = async () => {
 
 const startPolling = () => {
     poll();
-    setInterval(poll, 261000); // 261 000 ms = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 = 997 (1000 max)
+    setInterval(poll, 261000); // 261 000 ms = 4.35 minutes. 1440minutes /4.35 = 331, 331*3=993, +4 +1 = 998 (1000 max)
     poll2();
     setInterval(poll2, 21600000); //=6h, donc 4 polls/jour
     pollplayer();

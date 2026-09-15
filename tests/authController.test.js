@@ -4,7 +4,7 @@ require('dotenv').config()
 
 const { pool } = require('../config/db') 
 
-const { register, login } = require('../controllers/authController')
+const { register, login, forgotPassword, resetPassword } = require('../controllers/authController')
 
 const createMockRes = () => {
     const res = {
@@ -24,8 +24,8 @@ const createMockRes = () => {
 
 describe('Test unitaire', () => {
 
-    let userA, userB, userC, tokenA
-    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com']
+    let userA, userB, userC, tokenA, tokenB
+    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com']
 
     before(async () => {
         await pool.query(
@@ -40,7 +40,7 @@ describe('Test unitaire', () => {
         await pool.end()
     })
 
-    test('US1: Register user with email, pseudo, strong password', async () => {
+    test('Register', async () => {
         const reqA = {
             body: {
                 pseudo: 'Alice Tester',
@@ -84,10 +84,9 @@ describe('Test unitaire', () => {
         const resC = createMockRes()
         await register(reqC, resC)
         assert.strictEqual(resC.statusCode, 400)
-        userC = resC.body.user
     })
 
-    test('US2: Login user to get secure token', async () => {
+    test('Login', async () => {
         const req = {
             body: {
                 email: 'test_us_a@example.com',
@@ -99,6 +98,75 @@ describe('Test unitaire', () => {
         assert.strictEqual(res.statusCode, 200)
         assert.ok(res.body.token)
         tokenA = res.body.token
+
+        //wrong password
+        const reqB = {
+            body: {
+                email: 'test_us_b@example.com',
+                password: 'Password12345!'
+            }
+        }
+        const resB = createMockRes()
+        await login(reqB, resB)
+        assert.strictEqual(resB.statusCode, 401)
+
+
+        //wrong mail
+        const reqA = {
+            body: {
+                email: 'test_us_x@example.com',
+                password: 'Password123!'
+            }
+        }
+        const resA = createMockRes()
+        await login(reqA, resA)
+        assert.strictEqual(resA.statusCode, 401)
     })
     
+    test('Forgot and reset password', async () => {
+        const req = {
+            body: {
+                email: 'test_us_a@example.com'
+            }
+        }
+        const res = createMockRes()
+        await forgotPassword(req, res)
+        assert.strictEqual(res.statusCode, 200)
+
+        
+        //wrong mail
+        const reqA = {
+            body: {
+                email: 'test_us_x@example.com'
+            }
+        }
+        const resA = createMockRes()
+        await forgotPassword(reqA, resA)
+        assert.strictEqual(resA.statusCode, 404)
+
+        const dbResult = await pool.query('SELECT reset_token FROM "Users" WHERE email = $1', ['test_us_a@example.com']);
+        const token2 = dbResult.rows[0]?.reset_token;
+        assert.ok(token2, 'Le token2 doit être enregistré en BDD');
+
+        const reqReset = {
+            params: { id: token2 },
+            body: {
+                email: 'test_us_a@example.com',
+                newPassword : 'Pass12345!'
+            }
+        }
+        const resReset = createMockRes()
+        await resetPassword(reqReset, resReset)
+        assert.strictEqual(resReset.statusCode, 200)
+
+        const reqLogin = {
+            body: {
+                email: 'test_us_a@example.com',
+                password: 'Pass12345!'
+            }
+        }
+        const resLogin = createMockRes()
+        await login(reqLogin, resLogin)
+        assert.strictEqual(resLogin.statusCode, 200)
+    })
 })
