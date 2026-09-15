@@ -31,7 +31,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
 const corsOption = {
-    origin: ['http://localhost:3004']
+    origin: ['http://localhost:3004', 'http://localhost:5173']
 }
 app.use(cors(corsOption))
 
