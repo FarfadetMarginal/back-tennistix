@@ -3,8 +3,8 @@ const nodemailer = require("nodemailer");
 async function mailSender(email, username, token) {
     const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
+        port: 587,
+        secure: false,
         auth: {
             user: process.env.GOOGLE_MAIL,
             pass: process.env.GOOGLE_PASS,
