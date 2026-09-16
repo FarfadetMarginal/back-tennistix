@@ -32,6 +32,9 @@ This link will work only for the next 10 minutes !`,
         return send;
     } catch (error) {
         console.log(error);
+        console.log('MAIL ERROR DETAILS:', JSON.stringify(error, null, 2));
+        console.log('MAIL ERROR MESSAGE:', error.message);
+        console.log('MAIL ERROR CODE:', error.code);
         throw new Error("Failed : email did not sent");
     }
 }
