@@ -12,7 +12,10 @@ async function mailSender(email, username, token) {
             Click on this link to reset your password : ${process.env.URL_WEBSITE}/reset-password/${token} !
             This link will work only for the next 10 minutes !`,
         });
-        if (error) throw new Error('Failed : email did not sent');
+        if (error) {
+            console.log('Resend error object:', JSON.stringify(error, null, 2));
+            throw new Error('Failed : email did not sent');
+        }
         return data;
 
     } catch (error) {
