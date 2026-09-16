@@ -35,6 +35,7 @@ const corsOption = {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 }
 app.use(cors(corsOption))
+console.log('CORS CONFIG LOADED')
 
 app.use(
     helmet({
