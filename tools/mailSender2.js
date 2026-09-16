@@ -16,7 +16,7 @@ async function mailSender(email, username, token) {
 
         We received a reset password request for your Tennistix account.
 
-        Click on this link to reset your password : ${process.env.URL_WEBSITE}/reset-password/${token} !
+        Click on this link to reset your password : ${process.env.URL_WEBSITE}/resetpass/${token} !
 
         This link will work only for the next 10 minutes !`
         });
