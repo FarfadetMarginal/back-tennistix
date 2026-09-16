@@ -22,7 +22,7 @@ const createMockRes = () => {
     return res
 }
 
-describe('Test unitaire', () => {
+describe('Auth test unit', () => {
 
     let userA, userB, userC, tokenA, tokenB
     const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com']
@@ -40,7 +40,7 @@ describe('Test unitaire', () => {
         await pool.end()
     })
 
-    test('Register', async () => {
+    test('Register good ', async () => {
         const reqA = {
             body: {
                 pseudo: 'Alice Tester',
@@ -53,11 +53,13 @@ describe('Test unitaire', () => {
         assert.strictEqual(resA.statusCode, 201)
         assert.ok(resA.body.token)
         userA = resA.body.user
+    })
 
-        // Register user B
+    test('Register duplicate', async () => {
+        // Duplicate email check
         const reqB = {
             body: {
-                pseudo: 'Bob Collaborator',
+                pseudo: 'Alice Tester',
                 email: 'test_us_b@example.com',
                 password: 'Password123!'
             }
@@ -65,28 +67,31 @@ describe('Test unitaire', () => {
         const resB = createMockRes()
         await register(reqB, resB)
         assert.strictEqual(resB.statusCode, 201)
+        assert.ok(resB.body.token)
         userB = resB.body.user
 
-        // Duplicate email check
         const resDup = createMockRes()
-        await register(reqA, resDup)
+        await register(reqB, resDup)
         assert.strictEqual(resDup.statusCode, 400)
+    })
 
 
+    test('Register with weak password', async () => {
         // weak password
-        const reqC = {
+        const req = {
             body: {
                 pseudo: 'Bob Collaborator nul',
                 email: 'test_us_c@example.com',
                 password: 'Passwordnul'
             }
         }
-        const resC = createMockRes()
-        await register(reqC, resC)
-        assert.strictEqual(resC.statusCode, 400)
+        const res = createMockRes()
+        await register(req, res)
+        assert.strictEqual(res.statusCode, 400)
     })
 
-    test('Login', async () => {
+
+    test('Login good', async () => {
         const req = {
             body: {
                 email: 'test_us_a@example.com',
@@ -98,7 +103,9 @@ describe('Test unitaire', () => {
         assert.strictEqual(res.statusCode, 200)
         assert.ok(res.body.token)
         tokenA = res.body.token
+    })
 
+    test('Login wrong password', async () => {
         //wrong password
         const reqB = {
             body: {
@@ -109,8 +116,9 @@ describe('Test unitaire', () => {
         const resB = createMockRes()
         await login(reqB, resB)
         assert.strictEqual(resB.statusCode, 401)
+    })
 
-
+    test('Login w wrong mail', async () => {
         //wrong mail
         const reqA = {
             body: {
@@ -123,7 +131,7 @@ describe('Test unitaire', () => {
         assert.strictEqual(resA.statusCode, 401)
     })
     
-    test('Forgot and reset password', async () => {
+    test('Forgot password good', async () => {
         const req = {
             body: {
                 email: 'test_us_a@example.com'
@@ -132,8 +140,9 @@ describe('Test unitaire', () => {
         const res = createMockRes()
         await forgotPassword(req, res)
         assert.strictEqual(res.statusCode, 200)
+    })
 
-        
+    test('forgot password w wrong mail', async () => {    
         //wrong mail
         const reqA = {
             body: {
@@ -144,6 +153,9 @@ describe('Test unitaire', () => {
         await forgotPassword(reqA, resA)
         assert.strictEqual(resA.statusCode, 404)
 
+    })
+
+    test('reset password good', async () => {    
         const dbResult = await pool.query('SELECT reset_token FROM "Users" WHERE email = $1', ['test_us_a@example.com']);
         const token2 = dbResult.rows[0]?.reset_token;
         assert.ok(token2, 'Le token2 doit être enregistré en BDD');
@@ -159,6 +171,9 @@ describe('Test unitaire', () => {
         await resetPassword(reqReset, resReset)
         assert.strictEqual(resReset.statusCode, 200)
 
+    })
+
+    test('Login w new password', async () => {    
         const reqLogin = {
             body: {
                 email: 'test_us_a@example.com',

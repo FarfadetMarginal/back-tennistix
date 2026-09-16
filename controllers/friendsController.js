@@ -9,7 +9,7 @@ exports.sendRequest = async (req, res) => {
         const senderId = req.user.id;
         const receiverId = parseInt(req.params.id, 10);
         
-        if (senderId === receiverId) {
+        if (senderId == receiverId) {
             return res.status(400).json({
                 message: 'you cannot send a friend request to yourself'
             });
@@ -22,7 +22,7 @@ exports.sendRequest = async (req, res) => {
         
         const existingRequest = result.rows[0]
         if(existingRequest){
-            return res.status(200).json({request : existingRequest})
+            return res.status(400).json({request : existingRequest})
         }
 
         const result2 = await pool.query(query2, [senderId, receiverId])
@@ -39,7 +39,7 @@ exports.sendRequest = async (req, res) => {
 
 exports.acceptRequest = async (req, res) => {
     try {
-        if(!req.user.id){
+        if(!req.user?.id){
             return res.status(401).json({message : 'not connected'})
         }
         

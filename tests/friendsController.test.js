@@ -49,7 +49,7 @@ describe('Test unitaire friends', () => {
         await pool.end()
     })
 
-    test('Send request', async () => {
+    test('Send friend request and accept', async () => {
         const reqA = {
             user: { id: userAId },
             params: { id: userBId }
@@ -58,6 +58,50 @@ describe('Test unitaire friends', () => {
         await sendRequest(reqA, resA)
         assert.strictEqual(resA.statusCode, 200)
         assert.ok(resA.body.message)
+        
+        //existing request
+        const resA2 = createMockRes()
+        await sendRequest(reqA, resA2)
+        assert.strictEqual(resA2.statusCode, 400)
 
+        //request to self
+        const reqB = {
+            user: { id: userAId },
+            params: { id: userAId }
+        }
+        const resB = createMockRes()
+        await sendRequest(reqB, resB)
+        assert.strictEqual(resB.statusCode, 400)
+        assert.strictEqual(resB.body.message, 'you cannot send a friend request to yourself')
+
+        //not connected
+        const reqC = {
+            user: undefined,
+            params: { id: userBId }
+        }
+        const resC = createMockRes()
+        await sendRequest(reqC, resC)
+        assert.strictEqual(resC.statusCode, 401)
+        assert.strictEqual(resC.body.message, 'not connected')
+
+        
+        //not connected (accept)
+        const reqD = {
+            user: undefined,
+            params: { id: userBId }
+        }
+        const resD = createMockRes()
+        await acceptRequest(reqD, resD)
+        assert.strictEqual(resD.statusCode, 401)
+        assert.strictEqual(resD.body.message, 'not connected')
+
+        const reqAccept = {
+            user: { id: userBId },
+            params: { id: userAId }
+        }
+        const resAccept = createMockRes()
+        await acceptRequest(reqAccept, resAccept)
+        assert.strictEqual(resAccept.statusCode, 200)
+        assert.ok(resAccept.body.message)
     })
 })
