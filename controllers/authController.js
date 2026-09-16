@@ -150,7 +150,6 @@ exports.forgotPassword = async (req, res) => {
     }
 }
 
-
 exports.resetPassword = async (req, res) => {
     const { email, newPassword } = req.body;
     const token2 = req.params.id
