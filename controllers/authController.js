@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
 const { pool } = require('../config/db') 
-const mailSender = require('../tools/mailSender')
+const mailSender2 = require('../tools/mailSender2')
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES_IN = '150d'
@@ -136,7 +136,7 @@ exports.forgotPassword = async (req, res) => {
 
         const token2 = generateToken2(changedUser.id)
 
-        await mailSender(email, changedUser.pseudo, token2);
+        await mailSender2(email, changedUser.pseudo, token2);
 
         const result2 = await pool.query(query2, [email, token2])
 

@@ -25,7 +25,7 @@ const createMockRes = () => {
 describe('Auth test unit', () => {
 
     let userA, userB, userC, tokenA, tokenB
-    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com']
+    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'bapt935@gmail.com']
 
     before(async () => {
         await pool.query(
@@ -54,6 +54,7 @@ describe('Auth test unit', () => {
         assert.ok(resA.body.token)
         userA = resA.body.user
     })
+    
 
     test('Register duplicate', async () => {
         // Duplicate email check
@@ -132,13 +133,25 @@ describe('Auth test unit', () => {
     })
     
     test('Forgot password good', async () => {
+        const reqRegister = {
+            body: {
+                pseudo: 'Bapt',
+                email: 'bapt935@gmail.com',
+                password: 'Password123!'
+            }
+        }
+        const resRegister = createMockRes()
+        await register(reqRegister, resRegister)
+        
         const req = {
             body: {
-                email: 'test_us_a@example.com'
+                email: 'bapt935@gmail.com'
             }
         }
         const res = createMockRes()
         await forgotPassword(req, res)
+        console.log('status:', res.statusCode)
+        console.log('body:', res.body)
         assert.strictEqual(res.statusCode, 200)
     })
 
@@ -156,14 +169,14 @@ describe('Auth test unit', () => {
     })
 
     test('reset password good', async () => {    
-        const dbResult = await pool.query('SELECT reset_token FROM "Users" WHERE email = $1', ['test_us_a@example.com']);
+        const dbResult = await pool.query('SELECT reset_token FROM "Users" WHERE email = $1', ['bapt935@gmail.com']);
         const token2 = dbResult.rows[0]?.reset_token;
         assert.ok(token2, 'Le token2 doit être enregistré en BDD');
 
         const reqReset = {
             params: { id: token2 },
             body: {
-                email: 'test_us_a@example.com',
+                email: 'bapt935@gmail.com',
                 newPassword : 'Pass12345!'
             }
         }
@@ -176,7 +189,7 @@ describe('Auth test unit', () => {
     test('Login w new password', async () => {    
         const reqLogin = {
             body: {
-                email: 'test_us_a@example.com',
+                email: 'bapt935@gmail.com',
                 password: 'Pass12345!'
             }
         }
