@@ -4,7 +4,7 @@ const {register, login, forgotPassword, resetPassword} = require('../controllers
 
 router.post('/register', register)
 router.post('/login', login)
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password/:id', resetPassword)
+router.patch('/forgot-password', forgotPassword)
+router.patch('/reset-password/:id', resetPassword)
 
 module.exports = router 
