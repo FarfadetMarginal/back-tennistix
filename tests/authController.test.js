@@ -3,7 +3,7 @@ const assert = require('node:assert')
 require('dotenv').config()
 
 const { pool } = require('../config/db') 
-
+const { findUserByEmail } = require('../models/userModels')
 const { register, login, forgotPassword, resetPassword } = require('../controllers/authController')
 
 const createMockRes = () => {
@@ -25,7 +25,7 @@ const createMockRes = () => {
 describe('Auth test unit', () => {
 
     let userA, userB, userC, tokenA, tokenB
-    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'bapt935@gmail.com']
+    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com', 'bapt935@gmail.com']
 
     before(async () => {
         await pool.query(
@@ -169,8 +169,8 @@ describe('Auth test unit', () => {
     })
 
     test('reset password good', async () => {    
-        const dbResult = await pool.query('SELECT reset_token FROM "Users" WHERE email = $1', ['bapt935@gmail.com']);
-        const token2 = dbResult.rows[0]?.reset_token;
+        const user = await findUserByEmail('bapt935@gmail.com');
+        const token2 = user?.reset_token;
         assert.ok(token2, 'Le token2 doit être enregistré en BDD');
 
         const reqReset = {
