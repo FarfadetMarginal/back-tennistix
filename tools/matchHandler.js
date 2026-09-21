@@ -1,4 +1,6 @@
-const { pool } = require('../config/db') 
+const { findFinishedMatchs, player1Win, player2Win } = require('../models/matchModels');
+const { updateResultProno } = require('../models/pronoModels');
+const { updateScoreUser } = require('../models/userModels');
 
 let liveCache = null;
 let scheduledCache = null;
@@ -20,30 +22,34 @@ const response = await fetch(`${BASE_URL}${endpoint}`, {
 };
 
 const pronoUpdater = async () =>{
-        const result = await pool.query('SELECT * FROM "Matchs" m INNER JOIN "Pronostics" p ON p.match_id = m.id_api WHERE p.result IS NULL')
+    const result = await findFinishedMatchs()
 
-        const allFinished = [
-            ...(finishedATPCache?.data || []),
-            ...(finishedWTACache?.data || [])
-        ];
-        
-        for(const item of result.rows) {
-            const finishedMatch = allFinished.find(m => m.id == item.id_api);
-            if(finishedMatch){
-                if(finishedMatch.winner == 1){
-                    await pool.query(`UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2`, [1, finishedMatch.id]);
-                }
-                
-                if(finishedMatch.winner == 2){
-                    await pool.query(`UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2`, [2, finishedMatch.id]);
-                }
-                
-                await pool.query(`UPDATE "Pronostics" SET result = CASE WHEN prono = $1 THEN true ELSE false END WHERE match_id = $2 AND result IS NULL`, [finishedMatch.winner, finishedMatch.id]);
+    const allFinished = [
+        ...(finishedATPCache?.data || []),
+        ...(finishedWTACache?.data || [])
+    ];
+    
+    for(const item of result) {
+        const finishedMatch = allFinished.find(m => m.id == item.id_api);
 
-                await pool.query(`UPDATE "Users" SET score = score + 1 WHERE id IN (SELECT user_id FROM "Pronostics" WHERE match_id = $1 AND prono = $2 AND result = true)`, [finishedMatch.id, finishedMatch.winner]);
-            }   
-        };
-    }
+        if (!finishedMatch) continue;
+
+        if(finishedMatch){
+            
+            if(finishedMatch.winner == 1){
+                await player1Win(finishedMatch.id)
+            }
+            
+            if(finishedMatch.winner == 2){
+                await player2Win(finishedMatch.id)
+            }
+            
+            await updateResultProno(finishedMatch.winner, finishedMatch.id)
+
+            await updateScoreUser(finishedMatch.id, finishedMatch.winner)
+        }   
+    };
+}
 
 const poll = async () => {
     try {
@@ -74,9 +80,13 @@ const poll = async () => {
 };
 
 const pollplayer = async () =>{
-    const players = await fetchFromAPI('/players?limit=200');
-    playersCache = {
-        data : players.data || []
+    try {
+        const players = await fetchFromAPI('/players?limit=200');
+        playersCache = {
+            data : players.data || []
+        }
+    } catch (err) {
+        console.error('Error during poll player :', err.message);
     }
 }
 

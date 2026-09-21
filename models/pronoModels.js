@@ -29,3 +29,21 @@ exports.createProno = async (user_id, match_id, prono, result) => {
 
     return rows[0];
 }
+
+exports.findExistingProno = async (userId, matchId) => {
+
+    const { rows } = await pool.query(
+        `SELECT * FROM "Pronostics" WHERE user_id = $1 AND match_id = $2`,
+        [userId, matchId]
+    );
+    return rows[0] || null;
+}
+
+exports.updateResultProno = async (winner, matchId) => {
+
+    const { rows } = await pool.query(
+        `UPDATE "Pronostics" SET result = CASE WHEN prono = $1 THEN true ELSE false END WHERE match_id = $2 AND result IS NULL RETURNING *`,
+        [winner, matchId]
+    );
+    return rows[0] || null;
+}
