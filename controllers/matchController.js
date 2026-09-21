@@ -1,5 +1,5 @@
 
-const { getLiveCache, getScheduledCache, getFinishedATPCache, getFinishedWTACache, getPlayersCache } = require('../tools/matchHandler.js');
+const { getLiveCache, getScheduledCache, getFinishedATPCache, getFinishedWTACache } = require('../tools/matchHandler.js');
 
 
 exports.getLive = (req, res) => {

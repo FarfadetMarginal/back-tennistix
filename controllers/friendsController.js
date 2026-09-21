@@ -1,4 +1,4 @@
-const { pool } = require('../config/db.js') 
+const { findRequest, sendRequest, findPendingRequest, acceptRequest, declineRequest, findFriends } = require('../models/friendsModels.js');
 
 exports.sendRequest = async (req, res) => {
     try {
@@ -15,21 +15,17 @@ exports.sendRequest = async (req, res) => {
             });
         }
 
-        const query = 'SELECT status FROM "Friends" WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1)' 
-        const query2 = 'INSERT INTO "Friends"(sender_id, receiver_id) VALUES($1, $2) RETURNING *'
-
-        const result = await pool.query(query, [senderId, receiverId])
+        const existingRequest = await findRequest(senderId, receiverId)
         
-        const existingRequest = result.rows[0]
         if(existingRequest){
             return res.status(400).json({request : existingRequest})
         }
 
-        const result2 = await pool.query(query2, [senderId, receiverId])
+        const result2 = await sendRequest(senderId, receiverId)
 
         return res.status(200).json({
             message : 'friend request sent successfully',
-            friendRequest: result2.rows[0]
+            friendRequest: result2
         })
     } catch (error) {
         return res.status(400).json({message : error.message})
@@ -46,24 +42,16 @@ exports.acceptRequest = async (req, res) => {
         const senderId = parseInt(req.params.id, 10);
         const receiverId = req.user.id;
 
-        const query2 =  `SELECT * FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'` 
-
-        const result2 = await pool.query(query2, [senderId, receiverId])
-        if(!result2.rows[0]){
+        const result2 = await findPendingRequest(senderId, receiverId)
+        if(!result2){
             return res.status(404).json({message : 'friend request not found'})
         }
-        if(result2.rows[0].status == 'accepted'){
-            return res.status(404).json({message : 'friend request already accepted'})
-        }
 
-
-        const query = `UPDATE "Friends" SET status = $1 WHERE sender_id = $2 AND receiver_id = $3 AND status = 'pending' RETURNING *`
-
-        const result = await pool.query(query, ["accepted", senderId, receiverId])
+        const result = await acceptRequest(senderId, receiverId)
 
         return res.status(200).json({
             message : 'friend request accepted successfully', 
-            friendship: result.rows[0]})
+            friendship: result})
     } catch (error) {
         return res.status(400).json({message : error.message})
     }
@@ -72,31 +60,19 @@ exports.acceptRequest = async (req, res) => {
 
 exports.declineRequest = async (req, res) => {
     try {
-        if(!req.user.id){
+        if(!req.user?.id){
             return res.status(401).json({message : 'not connected'})
         }
         
         const senderId = parseInt(req.params.id, 10);
-        const receiverId = req.user.id;
+        const receiverId = req.user.id; 
 
-        const query2 =  `SELECT * FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'` 
-
-        const result2 = await pool.query(query2, [senderId, receiverId])
-        if(!result2.rows[0]){
+        const result2 = await findPendingRequest(senderId, receiverId)
+        if(!result2){
             return res.status(404).json({message : 'friend request not found'})
         }
-        if(result2.rows[0].status == 'accepted'){
-            return res.status(404).json({message : 'friend request already accepted'})
-        }
 
-
-        const query = `DELETE FROM "Friends" WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending' RETURNING *`
-
-        const result = await pool.query(query, [senderId, receiverId])
-
-        if(!result.rows[0]){
-            return res.status(404).json({message : 'request not found'})
-        }
+        await declineRequest(senderId, receiverId)
 
         return res.status(200).json({
             message : 'friend request declined successfully'})
@@ -109,19 +85,17 @@ exports.declineRequest = async (req, res) => {
 
 exports.getFriends = async (req, res) => {
     try {
-        if(!req.user.id){
+        if(!req.user?.id){
             return res.status(401).json({message : 'not connected'})
         }
         
         const senderId = req.user.id;
 
-        const query = `SELECT u.id, u.pseudo FROM "Friends" f JOIN "Users" u ON u.id = CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END WHERE (f.sender_id = $1 OR f.receiver_id = $1) AND f.status = 'accepted'`
-
-        const result = await pool.query(query, [senderId])
+        const result = await findFriends(senderId)
 
         return res.status(200).json({
             message : 'friend list displayed successfully', 
-            friendlist : result.rows})
+            friendlist : result})
             
     } catch (error) {
         return res.status(400).json({message : error.message})

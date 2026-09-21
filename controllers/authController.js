@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
-const { pool } = require('../config/db') 
 const mailSender2 = require('../tools/mailSender2')
+const { findUserByEmail, createUser, createPassToken, changePassword } = require('../models/userModels')
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES_IN = '150d'
@@ -49,16 +49,12 @@ exports.register = async(req, res)=>{
         
         const hashedPassword = await bcrypt.hash(password, 10)
         
-        const existingUser = await pool.query('SELECT id FROM "Users" WHERE email = $1', [email]);
-        if (existingUser.rows.length > 0) {
+        const existingUser = await findUserByEmail(email);
+        if (existingUser) {
             return res.status(400).json({ message: 'email already in use' });
         }
 
-        const query = 'INSERT INTO "Users"(pseudo, email, password, role) VALUES($1, $2, $3, $4) RETURNING *'
-
-        const result = await pool.query(query, [pseudo, email, hashedPassword, role || 'user'])
-
-        const user = result.rows[0]
+        const user = await createUser(pseudo, email, hashedPassword, role)
 
         const token = generateToken(user.id)
 
@@ -81,15 +77,11 @@ exports.login = async (req, res) =>{
     try {
         const {email, password} = req.body
         if(!email || !password){
-            res.status(400).json({message : 'empty field'})
+            return res.status(400).json({message : 'empty field'})
         }
         
         //find user and select password field
-        const query = 'SELECT * FROM "Users" WHERE email = $1' 
-        
-        const result = await pool.query(query, [email])
-        
-        const user = result.rows[0]
+        const user = await findUserByEmail(email);
 
         if(!user){
             return res.status(401).json({message : 'invalid credantials'})
@@ -120,15 +112,12 @@ exports.login = async (req, res) =>{
 //reset password
 exports.forgotPassword = async (req, res) => {
     try {
-        const query = 'SELECT * FROM "Users" WHERE email = $1' 
-        const query2 = 'UPDATE "Users" SET reset_token = $2 WHERE email = $1'
         const { email } = req.body
         if(!email){
             return res.status(400).json({message : 'empty field'})
         }
-        const result = await pool.query(query, [email])
         
-        const changedUser = result.rows[0]
+        const changedUser = await findUserByEmail(email);
         
         if(!changedUser){
             return res.status(404).json({message : 'user not found'})
@@ -138,9 +127,7 @@ exports.forgotPassword = async (req, res) => {
 
         await mailSender2(email, changedUser.pseudo, token2);
 
-        const result2 = await pool.query(query2, [email, token2])
-
-        const changedUser2 = result2.rows[0]
+        await createPassToken(token2, email)
 
         return res.status(200).json({
             message : 'mail sent'
@@ -153,13 +140,10 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
     const { email, newPassword } = req.body;
     const token2 = req.params.id
-    const query = 'UPDATE "Users" SET password = $1, reset_token = $3 WHERE id = $2'
-    const query2 = 'SELECT id, reset_token FROM "Users" WHERE email = $1'
     try {
         const decoded = jwt.verify(token2, JWT_SECRET); 
 
-        const result = await pool.query(query2, [email]);
-        const changedUser = result.rows[0]
+        const changedUser = await findUserByEmail(email)
 
         if(!changedUser){
             return res.status(404).json({message : 'user not found'})
@@ -187,7 +171,7 @@ exports.resetPassword = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        await pool.query(query, [hashedPassword, decoded.id, null]);
+        await changePassword(hashedPassword, decoded.id)
 
         return res.status(200).json({ message: 'Password updated' });
     } catch (err) {

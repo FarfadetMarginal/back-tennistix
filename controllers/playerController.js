@@ -1,5 +1,6 @@
 const { getPlayersCache } = require('../tools/matchHandler.js');
-const { pool } = require('../config/db.js') 
+const { findUserById } = require('../models/userModels.js');
+const { addFavPlayer } = require('../models/playerModels.js');
 
 
 exports.getPlayers = async (req, res) => {
@@ -15,18 +16,13 @@ exports.getPlayers = async (req, res) => {
 
 exports.favPlayer = async (req, res) => {
     try {
-        if(!req.user.id){
+        if(!req.user?.id){
             return res.status(401).json({message : 'not connected'})
         }
-        
-        const query = 'SELECT * FROM "Users" WHERE id = $1' 
-        const query2 = 'UPDATE "Users" SET favs = $1 WHERE id = $2 RETURNING *'
 
         const { player_id } = req.body
-
-        const result = await pool.query(query, [req.user.id])
         
-        const changedUser = result.rows[0]
+        const changedUser = await findUserById(req.user.id)
 
         const currentfav = changedUser.favs || []
         
@@ -39,10 +35,8 @@ exports.favPlayer = async (req, res) => {
         } else {
             newfav.push(player_id)
         }
-
-        const result2 = await pool.query(query2, [newfav, req.user.id])
         
-        const newUser = result2.rows[0]
+        const newUser = await addFavPlayer(newfav, req.user.id)
 
         return res.status(200).json({
             message : 'fav updated successfully',
