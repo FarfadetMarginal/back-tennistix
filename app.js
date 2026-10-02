@@ -48,7 +48,7 @@ app.use(
 
 const limiter = rateLimit({
     windowMs : 15*60*1000, //fenetre de 15minutes
-    limit : 100, //max 100 requêtes par IP sur ce creneau
+    limit : 1000, //max 100 requêtes par IP sur ce creneau
     message : {status: 429, error: 'trop de requête'}
 })
 app.use(limiter)
