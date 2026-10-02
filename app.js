@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const port = 3004
 require('dotenv').config()
+const cookieParser = require('cookie-parser')
 //pas oublier d'installer : npm i dotenv
 
 const cors = require('cors')
@@ -36,7 +37,7 @@ const corsOption = {
     credentials: true
 }
 app.use(cors(corsOption))
-console.log('CORS CONFIG LOADED')
+app.use(cookieParser())
 
 app.use(
     helmet({
