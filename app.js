@@ -32,7 +32,8 @@ app.use(express.urlencoded({extended: true}))
 
 const corsOption = {
     origin: ['http://localhost:3004', 'http://localhost:5173'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true
 }
 app.use(cors(corsOption))
 console.log('CORS CONFIG LOADED')
