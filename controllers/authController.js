@@ -5,12 +5,11 @@ const mailSender2 = require('../tools/mailSender2')
 const { findUserByEmail, createUser, createPassToken, changePassword } = require('../models/userModels')
 
 const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRES_IN = '150d'
 
 //helper : on génère des tokens
-const generateToken = (id) =>{
+const generateToken = (id, expire) =>{
     return jwt.sign({id}, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN
+        expiresIn: expire
     })
 }
 const generateToken2 = (id) =>{
@@ -56,16 +55,20 @@ exports.register = async(req, res)=>{
 
         const user = await createUser(pseudo, email, hashedPassword, role)
 
-        const token = generateToken(user.id)
+        // const token = generateToken(user.id)
+        const tokenRefresh = generateToken(user.id_user, '7d') //*
+        const tokenAccess = generateToken(user.id_user, 900) // 900seconde = 15min *
+        res.cookie("tokenRefresh", tokenRefresh,{ //*
+            httpOnly: true,
+            secure: true,
+            sameSite: "lax",
+            maxAge: 7*24*60*60*1000
+        })
 
         return res.status(201).json({
             message : 'User registered successfully',
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-            }
+            token : tokenAccess,
+            user
         })
     } catch (err) {
         res.status(500).json({error : err.message})
@@ -92,11 +95,22 @@ exports.login = async (req, res) =>{
         if(!isMatch){
             return res.status(401).json({message : 'incorrect password'})
         }
-        const token = generateToken(user.id)
+        // const token = generateToken(user.id)
 
-        return res.status(200).json({
+        const tokenRefresh = generateToken(user.id_user, '7d') //*
+        const tokenAccess = generateToken(user.id_user, 900) // 900seconde = 15min *
+
+        res.cookie("tokenRefresh", tokenRefresh, { //*
+            httpOnly: true,
+            secure: false,
+            sameSite:'lax',
+            maxAge: 7*24*60*60*1000
+        })
+
+
+        return res.status(200).json({ 
             message : 'User login successfully',
-            token,
+            token : tokenAccess,
             user: {
                 id: user.id,
                 email: user.email,
@@ -176,5 +190,22 @@ exports.resetPassword = async (req, res) => {
         return res.status(200).json({ message: 'Password updated' });
     } catch (err) {
         return res.status(401).json({ message: 'unvalid token' });
+    }
+}
+
+exports.refreshAuth = async (req, res) =>{ //*
+    const tokenRefresh = req.cookies.tokenRefresh
+    if(!tokenRefresh)
+        return res.status(404).json({message: "Token not found, please reconnect. "})
+    try {
+        const decoded = jwt.verify(tokenRefresh, JWT_SECRET)
+        const tokenAccess = generateToken(decoded.id, 900)
+       
+        res.status(200).json({
+            message: "Access token refreshed",
+            token: tokenAccess
+        })
+    } catch (err) {
+        res.status(400).json({message: err.message})
     }
 }
