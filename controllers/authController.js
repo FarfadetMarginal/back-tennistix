@@ -56,8 +56,8 @@ exports.register = async(req, res)=>{
         const user = await createUser(pseudo, email, hashedPassword, role)
 
         // const token = generateToken(user.id)
-        const tokenRefresh = generateToken(user.id_user, '7d') //*
-        const tokenAccess = generateToken(user.id_user, 900) // 900seconde = 15min *
+        const tokenRefresh = generateToken(user.id, '7d') //*
+        const tokenAccess = generateToken(user.id, 900) // 900seconde = 15min *
         res.cookie("tokenRefresh", tokenRefresh,{ //*
             httpOnly: true,
             secure: true,
@@ -97,8 +97,8 @@ exports.login = async (req, res) =>{
         }
         // const token = generateToken(user.id)
 
-        const tokenRefresh = generateToken(user.id_user, '7d') //*
-        const tokenAccess = generateToken(user.id_user, 900) // 900seconde = 15min *
+        const tokenRefresh = generateToken(user.id, '7d') //*
+        const tokenAccess = generateToken(user.id, 900) // 900seconde = 15min *
 
         res.cookie("tokenRefresh", tokenRefresh, { //*
             httpOnly: true,
