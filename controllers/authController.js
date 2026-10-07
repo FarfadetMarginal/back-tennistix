@@ -115,6 +115,9 @@ exports.login = async (req, res) =>{
                 id: user.id,
                 email: user.email,
                 role: user.role,
+                pseudo: user.pseudo, 
+                score: user.score,  
+                pp: user.pp  
             }
         })
 
@@ -200,12 +203,25 @@ exports.refreshAuth = async (req, res) =>{ //*
     try {
         const decoded = jwt.verify(tokenRefresh, JWT_SECRET)
         const tokenAccess = generateToken(decoded.id, 900)
+
+        const user = await findUserById(decoded.id)
+        const { password, reset_token, ...safeUser } = user
        
         res.status(200).json({
             message: "Access token refreshed",
-            token: tokenAccess
+            token: tokenAccess,
+            user : safeUser
         })
     } catch (err) {
         res.status(400).json({message: err.message})
+    }
+}
+
+exports.getProfile = async (req, res) => {
+    try {
+        const { password, reset_token, ...user } = req.user
+        res.status(200).json({ user })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
     }
 }
