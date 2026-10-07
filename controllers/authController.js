@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
 const mailSender2 = require('../tools/mailSender2')
-const { findUserByEmail, createUser, createPassToken, changePassword } = require('../models/userModels')
+const { findUserByEmail, createUser, createPassToken, changePassword, findUserById } = require('../models/userModels')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
