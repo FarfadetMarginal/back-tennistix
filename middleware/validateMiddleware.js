@@ -3,7 +3,7 @@
 function validateBody(schema){
     return (req, res, next) =>{
         const result = schema.safeParse(req.body)
-        if(!result.sucess){
+        if(!result.success){
             return res.status(422).json({
                 title: "invalid datas",
                 status: 422,
@@ -14,7 +14,7 @@ function validateBody(schema){
             })
         }
         //validation ok, renvoi les données sur body et next
-        req.body.result.data
+        req.body = result.data
         next()
     }
 }
