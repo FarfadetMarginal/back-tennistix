@@ -12,12 +12,12 @@ const API_KEY = process.env.APIKEY;
 const BASE_URL = 'https://api.livetennisapi.com/api/public/v1';
 
 const fetchFromAPI = async (endpoint) => {
-const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Accept': 'application/json'
-    }
-});
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+        headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json'
+        }
+    });
     return await response.json();
 };
 

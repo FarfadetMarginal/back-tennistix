@@ -23,35 +23,12 @@ exports.register = async(req, res)=>{
     try {
         const {pseudo, email, password, role} = req.body
         
-        //on check si champs non vide
-        if(!pseudo ||!email || !password){
-            return res.status(400).json({message : 'empty field'})
-        }
-
-        const isPasswordOk = validator.isStrongPassword(password, {
-            minLength: 6,
-            minLowercase: 1,
-            minUppercase: 1,
-            minNumbers: 1,
-            minSymbols: 1,
-        })
-
-        if(!isPasswordOk){
-            return res.status(400).json({message: "password not valid : 1 maj 1 min 1 number 1 special chars 6 total required"})
-        }
-
-        const isEmailOk = validator.isEmail(email)
-
-        if(!isEmailOk){
-            return res.status(400).json({message: "email not valid"})
-        }
-        
-        const hashedPassword = await bcrypt.hash(password, 10)
-        
         const existingUser = await findUserByEmail(email);
         if (existingUser) {
             return res.status(400).json({ message: 'email already in use' });
         }
+        
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         const user = await createUser(pseudo, email, hashedPassword, role)
 
@@ -79,10 +56,7 @@ exports.register = async(req, res)=>{
 exports.login = async (req, res) =>{
     try {
         const {email, password} = req.body
-        if(!email || !password){
-            return res.status(400).json({message : 'empty field'})
-        }
-        
+    
         //find user and select password field
         const user = await findUserByEmail(email);
 
@@ -106,7 +80,6 @@ exports.login = async (req, res) =>{
             sameSite:'none',
             maxAge: 7*24*60*60*1000
         })
-
 
         return res.status(200).json({ 
             message : 'User login successfully',
