@@ -25,7 +25,11 @@ exports.register = async(req, res)=>{
         
         const existingUser = await findUserByEmail(email);
         if (existingUser) {
-            return res.status(400).json({ message: 'email already in use' });
+            return res.status(409).json({ 
+                title: 'email already in use',
+                status: 409,
+                detail: "this mail can't be used"
+             });
         }
         
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -61,7 +65,7 @@ exports.login = async (req, res) =>{
         const user = await findUserByEmail(email);
 
         if(!user){
-            return res.status(401).json({message : 'invalid credantials'})
+            return res.status(401).json({title : 'invalid credantials'})
         }
 
         //check password match
@@ -190,11 +194,11 @@ exports.refreshAuth = async (req, res) =>{ //*
     }
 }
 
-exports.getProfile = async (req, res) => {
-    try {
-        const { password, reset_token, ...user } = req.user
-        res.status(200).json({ user })
-    } catch (err) {
-        res.status(500).json({ error: err.message })
-    }
+exports.logout = async (req, res) => {
+    res.clearCookie('tokenRefresh', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    })
+    res.status(200).json({ message: 'logged out' })
 }
