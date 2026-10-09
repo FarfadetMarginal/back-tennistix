@@ -67,7 +67,7 @@ exports.searchUser = async (search, id) => {
 exports.getGlobalWr = async () => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
+        `SELECT u.pseudo, u.pp, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id 
         WHERE p.result IS NOT NULL GROUP BY u.id, u.pseudo ORDER BY winrate DESC`
     )
@@ -78,7 +78,7 @@ exports.getGlobalWr = async () => {
 exports.getGlobalScore = async () => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, u.score
+        `SELECT u.pseudo, u.pp, u.score
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id 
         WHERE p.result IS NOT NULL GROUP BY u.id, u.pseudo, u.score ORDER BY u.score DESC`
     )
@@ -89,7 +89,7 @@ exports.getGlobalScore = async () => {
 exports.getTournamentWr = async (tournament) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
+        `SELECT u.pseudo, u.pp, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id JOIN "Matchs" m ON m.id_api = p.match_id 
         WHERE p.result IS NOT NULL AND m.tournament_name = $1 GROUP BY u.id, u.pseudo ORDER BY winrate DESC`,
         [tournament]
@@ -101,7 +101,7 @@ exports.getTournamentWr = async (tournament) => {
 exports.getTournamentScore = async (tournament) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(CASE WHEN p.result = true THEN 1 END) AS score_tournoi
+        `SELECT u.pseudo, u.pp, COUNT(CASE WHEN p.result = true THEN 1 END) AS score_tournoi
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id JOIN "Matchs" m ON m.id_api = p.match_id
         WHERE p.result IS NOT NULL AND m.tournament_name = $1 GROUP BY u.id, u.pseudo ORDER BY score_tournoi DESC`, 
         [tournament]
@@ -113,7 +113,7 @@ exports.getTournamentScore = async (tournament) => {
 exports.getFriendsWr = async (id) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate
+        `SELECT u.pseudo, u.pp, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id
         WHERE p.result IS NOT NULL AND u.id IN (SELECT $1 UNION SELECT CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END
         FROM "Friends" f WHERE (f.sender_id = $1 OR f.receiver_id = $1) AND f.status = 'accepted')
@@ -128,7 +128,7 @@ exports.getFriendsWr = async (id) => {
 exports.getFriendsScore = async (id) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, u.score
+        `SELECT u.pseudo, u.pp, u.score
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id
         WHERE p.result IS NOT NULL AND u.id IN (SELECT $1 UNION SELECT CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END
         FROM "Friends" f WHERE (f.sender_id = $1 OR f.receiver_id = $1) AND f.status = 'accepted')
@@ -143,7 +143,7 @@ exports.getFriendsScore = async (id) => {
 exports.getFriendsTournamentWr = async (id, tournament) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
+        `SELECT u.pseudo, u.pp, COUNT(p.id) as total_pronos, COUNT(CASE WHEN p.result = true THEN 1 END) as wins, ROUND(COUNT(CASE WHEN p.result = true THEN 1 END) * 100.0 / NULLIF(COUNT(p.id), 0), 1) as winrate 
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id JOIN "Matchs" m ON m.id_api = p.match_id
         WHERE p.result IS NOT NULL AND u.id IN 
             (SELECT $1 UNION SELECT CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END 
@@ -159,7 +159,7 @@ exports.getFriendsTournamentWr = async (id, tournament) => {
 exports.getFriendsTournamentScore = async (id, tournament) => {
 
     const { rows } = await pool.query(
-        `SELECT u.pseudo, COUNT(CASE WHEN p.result = true THEN 1 END) AS score_tournoi
+        `SELECT u.pseudo, u.pp, COUNT(CASE WHEN p.result = true THEN 1 END) AS score_tournoi
         FROM "Users" u JOIN "Pronostics" p ON p.user_id = u.id JOIN "Matchs" m ON m.id_api = p.match_id
         WHERE p.result IS NOT NULL AND u.id IN 
             (SELECT $1 UNION SELECT CASE WHEN f.sender_id = $1 THEN f.receiver_id ELSE f.sender_id END 
