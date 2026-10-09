@@ -1,4 +1,4 @@
-const { findRequest, sendRequest, findPendingRequest, acceptRequest, declineRequest, findFriends } = require('../models/friendsModels.js');
+const { findRequest, sendRequest, findPendingRequest, acceptRequest, declineRequest, findFriends, findAllPendingRequest } = require('../models/friendsModels.js');
 
 exports.sendRequest = async (req, res) => {
     try {
@@ -96,6 +96,27 @@ exports.getFriends = async (req, res) => {
         return res.status(200).json({
             message : 'friend list displayed successfully', 
             friendlist : result})
+            
+    } catch (error) {
+        return res.status(400).json({message : error.message})
+    }
+}
+
+exports.getRequest = async (req, res) => {
+    try {
+        if(!req.user?.id){
+            return res.status(401).json({message : 'not connected'})
+        }
+        
+        const receiverId = req.user.id; 
+
+        const result2 = await findAllPendingRequest(receiverId)
+        if(result2.length<=0){
+            return res.status(404).json({message : 'no friend request pending'})
+        }
+        return res.status(200).json({
+            message : 'friend list displayed successfully', 
+            requestlist : result2})
             
     } catch (error) {
         return res.status(400).json({message : error.message})

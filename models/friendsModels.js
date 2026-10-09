@@ -30,6 +30,17 @@ exports.findPendingRequest = async (senderId, receiverId) => {
     return rows[0] || null;
 }
 
+exports.findAllPendingRequest = async (receiverId) => {
+
+    const { rows } = await pool.query(
+        `SELECT f.sender_id, f.id, u.pseudo, u.pp FROM "Friends" f JOIN "Users" u ON u.id_user = f.sender_id WHERE f.receiver_id = $1 AND f.status = 'pending'`,
+        [receiverId]
+    )
+
+    return rows;
+}
+
+
 exports.acceptRequest = async (senderId, receiverId) => {
 
     const { rows } = await pool.query(
