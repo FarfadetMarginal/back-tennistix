@@ -33,7 +33,7 @@ exports.findPendingRequest = async (senderId, receiverId) => {
 exports.findAllPendingRequest = async (receiverId) => {
 
     const { rows } = await pool.query(
-        `SELECT f.sender_id, f.id, u.pseudo, u.pp FROM "Friends" f JOIN "Users" u ON u.id_user = f.sender_id WHERE f.receiver_id = $1 AND f.status = 'pending'`,
+        `SELECT f.sender_id, f.id, u.pseudo, u.pp FROM "Friends" f JOIN "Users" u ON u.id = f.sender_id WHERE f.receiver_id = $1 AND f.status = 'pending'`,
         [receiverId]
     )
 
