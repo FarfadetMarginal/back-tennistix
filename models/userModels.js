@@ -57,7 +57,7 @@ exports.changeUser = async (pseudo, email, hashedPassword, pp, id) => {
 
 exports.searchUser = async (search, id) => {
     const { rows } = await pool.query(
-        `SELECT pseudo, id FROM "Users" WHERE pseudo ILIKE $1 AND id != $2 LIMIT 20`,
+        `SELECT pseudo, id, pp FROM "Users" WHERE pseudo ILIKE $1 AND id != $2 LIMIT 20`,
         [`%${search}%`, id], 
     )
 
