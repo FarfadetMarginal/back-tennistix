@@ -71,7 +71,11 @@ exports.login = async (req, res) =>{
         //check password match
         const isMatch = await bcrypt.compare(password, user.password)
         if(!isMatch){
-            return res.status(401).json({message : 'incorrect password'})
+            return res.status(401).json({ 
+                title: 'invalid password',
+                status: 401,
+                detail: "this password is not valid"
+             });
         }
         // const token = generateToken(user.id)
 
@@ -108,13 +112,21 @@ exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body
         if(!email){
-            return res.status(400).json({message : 'empty field'})
+            return res.status(400).json({ 
+                title: 'empty field',
+                status: 400,
+                detail: "email is empty"
+             });
         }
         
         const changedUser = await findUserByEmail(email);
         
         if(!changedUser){
-            return res.status(404).json({message : 'user not found'})
+            return res.status(404).json({ 
+                title: 'mail not found',
+                status: 404,
+                detail: "this email is not found"
+             });
         }
 
         const token2 = generateToken2(changedUser.id)
@@ -123,9 +135,11 @@ exports.forgotPassword = async (req, res) => {
 
         await createPassToken(token2, email)
 
-        return res.status(200).json({
-            message : 'mail sent'
-        })
+        return res.status(200).json({ 
+                title: 'mail sent',
+                status: 200,
+                detail: "the mail to reset password was sent succesfully"
+             });
     } catch (error) {
         return res.status(400).json({message : error.message})
     }
@@ -140,15 +154,27 @@ exports.resetPassword = async (req, res) => {
         const changedUser = await findUserByEmail(email)
 
         if(!changedUser){
-            return res.status(404).json({message : 'user not found'})
+            return res.status(404).json({ 
+                title: 'mail not found',
+                status: 404,
+                detail: "this email is not found"
+             });
         }
 
         if(token2 != changedUser.reset_token){
-            return res.status(401).json({ message: 'unvalid token' });
+            return res.status(401).json({ 
+                title: 'unvalid token',
+                status: 401,
+                detail: "the token is not valid"
+             });
         }
 
         if(decoded.id != changedUser.id){
-            return res.status(401).json({ message: 'unvalid token' });
+            return res.status(401).json({ 
+                title: 'unvalid token',
+                status: 401,
+                detail: "the token is not valid"
+             });
         }
 
         const isPasswordOk = validator.isStrongPassword(newPassword, {
@@ -167,16 +193,24 @@ exports.resetPassword = async (req, res) => {
 
         await changePassword(hashedPassword, decoded.id)
 
-        return res.status(200).json({ message: 'Password updated' });
+        return res.status(200).json({ 
+            title: 'password updated',
+            status: 200,
+            detail: "password updated successfully"
+        });
     } catch (err) {
-        return res.status(401).json({ message: 'unvalid token' });
+        return res.status(400).json({message : error.message})
     }
 }
 
 exports.refreshAuth = async (req, res) =>{ //*
     const tokenRefresh = req.cookies.tokenRefresh
     if(!tokenRefresh)
-        return res.status(404).json({message: "Token not found, please reconnect. "})
+        return res.status(404).json({ 
+            title: 'token not found',
+            status: 404,
+            detail: "the token is not found, please reconnect"
+        });
     try {
         const decoded = jwt.verify(tokenRefresh, JWT_SECRET)
         const tokenAccess = generateToken(decoded.id, 900)
