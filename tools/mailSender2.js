@@ -21,12 +21,6 @@ async function mailSender(email, username, token) {
         This link will work only for the next 10 minutes !`
         });
     } catch (error) {
-        console.error('========== BREVO ERROR ==========');
-        console.error('message:', error.message);
-        console.error('status:', error.statusCode);
-        console.error('body:', error.body);
-        console.error('full error:', error);
-        console.error('=================================');
         throw new Error('Failed : email did not sent');
     }
 }
