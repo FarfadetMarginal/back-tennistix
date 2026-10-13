@@ -3,22 +3,32 @@ const { findRequest, sendRequest, findPendingRequest, acceptRequest, declineRequ
 exports.sendRequest = async (req, res) => {
     try {
         if(!req.user?.id){
-            return res.status(401).json({message : 'not connected'})
+            return res.status(401).json({ 
+                title: 'not connected',
+                status: 401,
+                detail: 'user not connected'
+            });
         }
         
         const senderId = req.user.id;
         const receiverId = parseInt(req.params.id, 10);
         
         if (senderId == receiverId) {
-            return res.status(400).json({
-                message: 'you cannot send a friend request to yourself'
-            });
+            return res.status(400).json({ 
+            title: 'self request',
+            status: 400,
+            detail: "you can't send a friend request to yourself"
+        });
         }
 
         const existingRequest = await findRequest(senderId, receiverId)
         
         if(existingRequest){
-            return res.status(400).json({request : existingRequest})
+            return res.status(409).json({ 
+                title: 'existing request',
+                status: 409,
+                detail: 'friend request already sent'
+            });
         }
 
         const result2 = await sendRequest(senderId, receiverId)
@@ -36,7 +46,11 @@ exports.sendRequest = async (req, res) => {
 exports.acceptRequest = async (req, res) => {
     try {
         if(!req.user?.id){
-            return res.status(401).json({message : 'not connected'})
+            return res.status(401).json({ 
+                title: 'not connected',
+                status: 401,
+                detail: 'user not connected'
+            });
         }
         
         const senderId = parseInt(req.params.id, 10);
@@ -44,7 +58,11 @@ exports.acceptRequest = async (req, res) => {
 
         const result2 = await findPendingRequest(senderId, receiverId)
         if(!result2){
-            return res.status(404).json({message : 'friend request not found'})
+            return res.status(404).json({ 
+                title: 'request not found',
+                status: 404,
+                detail: 'friend request not found'
+            });
         }
 
         const result = await acceptRequest(senderId, receiverId)
@@ -61,7 +79,11 @@ exports.acceptRequest = async (req, res) => {
 exports.declineRequest = async (req, res) => {
     try {
         if(!req.user?.id){
-            return res.status(401).json({message : 'not connected'})
+            return res.status(401).json({ 
+                title: 'not connected',
+                status: 401,
+                detail: 'user not connected'
+            });
         }
         
         const senderId = parseInt(req.params.id, 10);
@@ -69,13 +91,20 @@ exports.declineRequest = async (req, res) => {
 
         const result2 = await findPendingRequest(senderId, receiverId)
         if(!result2){
-            return res.status(404).json({message : 'friend request not found'})
+            return res.status(404).json({ 
+                title: 'request not found',
+                status: 404,
+                detail: 'friend request not found'
+            });
         }
 
         await declineRequest(senderId, receiverId)
 
-        return res.status(200).json({
-            message : 'friend request declined successfully'})
+        return res.status(200).json({ 
+                title: 'request declined',
+                status: 200,
+                detail: 'friend request declined successfully'
+            });
             
     } catch (error) {
         return res.status(400).json({message : error.message})
@@ -86,7 +115,11 @@ exports.declineRequest = async (req, res) => {
 exports.getFriends = async (req, res) => {
     try {
         if(!req.user?.id){
-            return res.status(401).json({message : 'not connected'})
+            return res.status(401).json({ 
+                title: 'not connected',
+                status: 401,
+                detail: 'user not connected'
+            });
         }
         
         const senderId = req.user.id;
@@ -105,14 +138,22 @@ exports.getFriends = async (req, res) => {
 exports.getRequest = async (req, res) => {
     try {
         if(!req.user?.id){
-            return res.status(401).json({message : 'not connected'})
+            return res.status(401).json({ 
+                title: 'not connected',
+                status: 401,
+                detail: 'user not connected'
+            });
         }
         
         const receiverId = req.user.id; 
 
         const result2 = await findAllPendingRequest(receiverId)
         if(result2.length<=0){
-            return res.status(404).json({message : 'no friend request pending'})
+            return res.status(404).json({ 
+                title: 'request not found',
+                status: 404,
+                detail: 'pending friend request not found'
+            });
         }
         return res.status(200).json({
             message : 'friend list displayed successfully', 
