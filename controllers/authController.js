@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
-const mailSender2 = require('../tools/mailSender2')
+const mailSender = require('../tools/mailSender')
 const { findUserByEmail, createUser, createPassToken, changePassword, findUserById } = require('../models/userModels')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -12,7 +12,7 @@ const generateToken = (id, expire) =>{
         expiresIn: expire
     })
 }
-const generateToken2 = (id) =>{
+const generateTokenReset = (id) =>{
     return jwt.sign({id}, JWT_SECRET, {
         expiresIn: '15m'
     })
@@ -129,11 +129,11 @@ exports.forgotPassword = async (req, res) => {
              });
         }
 
-        const token2 = generateToken2(changedUser.id)
+        const tokenReset = generateTokenReset(changedUser.id)
 
-        await mailSender2(email, changedUser.pseudo, token2);
+        await mailSender(email, changedUser.pseudo, tokentokenReset);
 
-        await createPassToken(token2, email)
+        await createPassToken(tokentokenReset, email)
 
         return res.status(200).json({ 
                 title: 'mail sent',
@@ -147,9 +147,9 @@ exports.forgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     const { email, newPassword } = req.body;
-    const token2 = req.params.id
+    const tokenReset = req.params.id
     try {
-        const decoded = jwt.verify(token2, JWT_SECRET); 
+        const decoded = jwt.verify(tokenReset, JWT_SECRET); 
 
         const changedUser = await findUserByEmail(email)
 
@@ -161,7 +161,7 @@ exports.resetPassword = async (req, res) => {
              });
         }
 
-        if(token2 != changedUser.reset_token){
+        if(tokenReset != changedUser.reset_token){
             return res.status(401).json({ 
                 title: 'unvalid token',
                 status: 401,

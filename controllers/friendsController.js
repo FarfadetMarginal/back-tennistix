@@ -31,11 +31,11 @@ exports.sendRequest = async (req, res) => {
             });
         }
 
-        const result2 = await sendRequest(senderId, receiverId)
+        const result = await sendRequest(senderId, receiverId)
 
         return res.status(200).json({
             message : 'friend request sent successfully',
-            friendRequest: result2
+            friendRequest: result
         })
     } catch (error) {
         return res.status(400).json({message : error.message})
@@ -56,8 +56,8 @@ exports.acceptRequest = async (req, res) => {
         const senderId = parseInt(req.params.id, 10);
         const receiverId = req.user.id;
 
-        const result2 = await findPendingRequest(senderId, receiverId)
-        if(!result2){
+        const pendingRequest = await findPendingRequest(senderId, receiverId)
+        if(!pendingRequest){
             return res.status(404).json({ 
                 title: 'request not found',
                 status: 404,
@@ -89,8 +89,8 @@ exports.declineRequest = async (req, res) => {
         const senderId = parseInt(req.params.id, 10);
         const receiverId = req.user.id; 
 
-        const result2 = await findPendingRequest(senderId, receiverId)
-        if(!result2){
+        const pendingRequest = await findPendingRequest(senderId, receiverId)
+        if(!pendingRequest){
             return res.status(404).json({ 
                 title: 'request not found',
                 status: 404,
@@ -147,8 +147,8 @@ exports.getRequest = async (req, res) => {
         
         const receiverId = req.user.id; 
 
-        const result2 = await findAllPendingRequest(receiverId)
-        if(result2.length<=0){
+        const pendingRequests = await findAllPendingRequest(receiverId)
+        if(pendingRequests.length<=0){
             return res.status(404).json({ 
                 title: 'request not found',
                 status: 404,
