@@ -32,7 +32,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
 const corsOption = {
-    origin: ['http://localhost:3004', 'http://localhost:5173'],
+    origin: ['http://localhost:3004', 'http://localhost:5173', 'https://tennistix.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true
 }

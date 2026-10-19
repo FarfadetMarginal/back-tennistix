@@ -16,8 +16,7 @@ const authMiddleware = async (req, res, next) =>{
         }
 
         const decoded = jwt.verify(token, JWT_SECRET)
-
-        //get user from token payload        
+     
         const user = await findUserById(decoded.id)
 
         if(!user){
