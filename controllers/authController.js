@@ -131,9 +131,9 @@ exports.forgotPassword = async (req, res) => {
 
         const tokenReset = generateTokenReset(changedUser.id)
 
-        await mailSender(email, changedUser.pseudo, tokentokenReset);
+        await mailSender(email, changedUser.pseudo, tokenReset);
 
-        await createPassToken(tokentokenReset, email)
+        await createPassToken(tokenReset, email)
 
         return res.status(200).json({ 
                 title: 'mail sent',
