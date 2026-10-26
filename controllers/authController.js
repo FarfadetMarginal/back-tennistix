@@ -22,6 +22,22 @@ const generateTokenReset = (id) =>{
 exports.register = async(req, res)=>{
     try {
         const {pseudo, email, password, role} = req.body
+
+        const isPasswordOk = typeof password === 'string' && validator.isStrongPassword(password, {
+            minLength: 6,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+        })
+
+        if (!isPasswordOk) {
+            return res.status(400).json({
+                title: 'invalid password',
+                status: 400,
+                detail: 'password must contain at least 6 characters, including an uppercase letter, a lowercase letter, a number and a symbol'
+            })
+        }
         
         const existingUser = await findUserByEmail(email);
         if (existingUser) {

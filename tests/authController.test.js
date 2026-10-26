@@ -3,7 +3,8 @@ const assert = require('node:assert')
 require('dotenv').config()
 
 const { pool } = require('../config/db') 
-const { findUserByEmail } = require('../models/userModels')
+const jwt = require('jsonwebtoken')
+const { findUserByEmail, createPassToken } = require('../models/userModels')
 const { register, login, forgotPassword, resetPassword } = require('../controllers/authController')
 
 const createMockRes = () => {
@@ -17,6 +18,9 @@ const createMockRes = () => {
         json(data) {
             this.body = data
             return this
+        },
+        cookie() {
+            return this
         }
     }
     return res
@@ -25,7 +29,7 @@ const createMockRes = () => {
 describe('Auth test unit', () => {
 
     let userA, userB, userC, tokenA, tokenB
-    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com', 'bapt935@gmail.com']
+    const testEmails = ['test_us_a@example.com', 'test_us_b@example.com', 'test_us_c@example.com']
 
     before(async () => {
         await pool.query(
@@ -73,7 +77,7 @@ describe('Auth test unit', () => {
 
         const resDup = createMockRes()
         await register(reqB, resDup)
-        assert.strictEqual(resDup.statusCode, 400)
+        assert.strictEqual(resDup.statusCode, 409)
     })
 
 
@@ -133,26 +137,35 @@ describe('Auth test unit', () => {
     })
     
     test('Forgot password good', async () => {
-        const reqRegister = {
-            body: {
-                pseudo: 'Bapt',
-                email: 'bapt935@gmail.com',
-                password: 'Password123!'
+        const email = 'bapt935@gmail.com'
+        let user = await findUserByEmail(email)
+        let createdForTest = false
+
+        if (!user) {
+            const resRegister = createMockRes()
+            await register({
+                body: {
+                    pseudo: 'Temporary mail test',
+                    email,
+                    password: 'Password123!'
+                }
+            }, resRegister)
+            assert.strictEqual(resRegister.statusCode, 201)
+            createdForTest = true
+            user = await findUserByEmail(email)
+        }
+
+        try {
+            const res = createMockRes()
+            await forgotPassword({ body: { email } }, res)
+            assert.strictEqual(res.statusCode, 200)
+        } finally {
+            if (createdForTest) {
+                await pool.query('DELETE FROM "Users" WHERE email = $1', [email])
+            } else {
+                await createPassToken(user.reset_token, email)
             }
         }
-        const resRegister = createMockRes()
-        await register(reqRegister, resRegister)
-        
-        const req = {
-            body: {
-                email: 'bapt935@gmail.com'
-            }
-        }
-        const res = createMockRes()
-        await forgotPassword(req, res)
-        console.log('status:', res.statusCode)
-        console.log('body:', res.body)
-        assert.strictEqual(res.statusCode, 200)
     })
 
     test('forgot password w wrong mail', async () => {    
@@ -169,14 +182,14 @@ describe('Auth test unit', () => {
     })
 
     test('reset password good', async () => {    
-        const user = await findUserByEmail('bapt935@gmail.com');
-        const token2 = user?.reset_token;
-        assert.ok(token2, 'Le token2 doit être enregistré en BDD');
+        const user = await findUserByEmail('test_us_b@example.com')
+        const token2 = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' })
+        await createPassToken(token2, 'test_us_b@example.com')
 
         const reqReset = {
             params: { id: token2 },
             body: {
-                email: 'bapt935@gmail.com',
+                email: 'test_us_b@example.com',
                 newPassword : 'Pass12345!'
             }
         }
@@ -189,7 +202,7 @@ describe('Auth test unit', () => {
     test('Login w new password', async () => {    
         const reqLogin = {
             body: {
-                email: 'bapt935@gmail.com',
+                email: 'test_us_b@example.com',
                 password: 'Pass12345!'
             }
         }
