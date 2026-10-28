@@ -9,19 +9,11 @@ exports.findFinishedMatchs = async () => {
     return rows|| null;
 }
 
-exports.player1Win = async (id) => {
+
+exports.playerWin = async (winner, id) => {
 
     const { rows } = await pool.query(
-        `UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2 RETURNING *`, [1, id]
-    )
-
-    return rows|| null;
-}
-
-exports.player2Win = async (id) => {
-
-    const { rows } = await pool.query(
-        `UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2 RETURNING *`, [2, id]
+        `UPDATE "Matchs" SET status = 'finished', result = $1 WHERE id_api = $2 RETURNING *`, [winner, id]
     )
 
     return rows|| null;

@@ -22,8 +22,8 @@ exports.newProno = async (req, res) =>{
             return res.status(404).json({ message: 'match not found' })
         }
 
-        const result3 = await findMatchById(match_id)
-        if(!result3){
+        const pronoMatch = await findMatchById(match_id)
+        if(!pronoMatch){
             await createMatch(match.match_id, match.player1_id, match.player2_id, null, match.tournament, match.start_time, match.status)
         }
 
@@ -32,9 +32,9 @@ exports.newProno = async (req, res) =>{
             return res.status(400).json({ message: 'you have already placed a prono for this match' });
         }
         
-        const result2 = await createProno(req.user.id, match.match_id, prono, null)
+        const result = await createProno(req.user.id, match.match_id, prono, null)
 
-        res.status(201).json(result2)
+        res.status(201).json(result)
     } catch (err) {
         res.status(500).json({message : 'server error during prono', error: err.message})
     }

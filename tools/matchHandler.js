@@ -1,4 +1,4 @@
-const { findFinishedMatchs, player1Win, player2Win } = require('../models/matchModels');
+const { findFinishedMatchs, playerWin } = require('../models/matchModels');
 const { updateResultProno } = require('../models/pronoModels');
 const { updateScoreUser } = require('../models/userModels');
 
@@ -37,11 +37,11 @@ const pronoUpdater = async () =>{
         if(finishedMatch){
             
             if(finishedMatch.winner == 1){
-                await player1Win(finishedMatch.id)
+                await playerWin(1, finishedMatch.id)
             }
             
             if(finishedMatch.winner == 2){
-                await player2Win(finishedMatch.id)
+                await playerWin(2, finishedMatch.id)
             }
             
             await updateResultProno(finishedMatch.winner, finishedMatch.id)
