@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
-const { findUserById, searchUser, getGlobalWr, getGlobalScore, getTournamentWr, getTournamentScore, getFriendsWr, getFriendsScore, getFriendsTournamentWr, getFriendsTournamentScore, changeUser } = require('../models/userModels.js')
+const { findUserById, searchUser, getGlobalWr, getGlobalScore, getTournamentWr, getTournamentScore, getFriendsWr, getFriendsScore, getFriendsTournamentWr, getFriendsTournamentScore, changeUser, deleteUser } = require('../models/userModels.js')
 
 //modifier infos
 exports.updateUser = async (req, res) => {
@@ -152,3 +152,4 @@ exports.deleteUsers = async (req, res) => {
         return res.status(400).json({message : error.message})
     }
 };
+

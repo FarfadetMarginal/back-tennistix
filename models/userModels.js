@@ -183,11 +183,15 @@ exports.updateScoreUser = async (id, winner) => {
 }
 
 exports.deleteUser = async (id) => {
-
     const { rows } = await pool.query(
-        `DELETE "Users" WHERE id = $1`,
-        [id, winner]
+        'DELETE FROM "Users" WHERE id = $1 RETURNING id',
+        [id]
     )
 
-    return rows || null;
+    if (!rows.length) {
+        throw new Error('user not found')
+    }
+
+    return rows[0]
 }
+
