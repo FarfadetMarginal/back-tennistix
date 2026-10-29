@@ -136,3 +136,19 @@ exports.getLeaderboard = async (req, res) => {
         return res.status(400).json({message : error.message})
     }
 };
+
+exports.deleteUsers = async (req, res) => {
+    try {
+        if(!req.user.id){
+            return res.status(401).json({message : 'not connected'})
+        }
+        
+        await deleteUser(req.user.id)
+
+        return res.status(200).json({
+            message : 'account deleted'})
+            
+    } catch (error) {
+        return res.status(400).json({message : error.message})
+    }
+};

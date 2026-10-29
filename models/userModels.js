@@ -181,3 +181,13 @@ exports.updateScoreUser = async (id, winner) => {
 
     return rows || null;
 }
+
+exports.deleteUser = async (id) => {
+
+    const { rows } = await pool.query(
+        `DELETE "Users" WHERE id = $1`,
+        [id, winner]
+    )
+
+    return rows || null;
+}
